@@ -130,6 +130,7 @@ export const videos = sqliteTable("videos", {
   roteiroId: integer("roteiro_id").notNull().references(() => roteiros.id, { onDelete: "cascade" }),
   titulo: text("titulo").notNull(),
   formato: text("formato", { enum: ["vertical", "horizontal"] }).notNull().default("vertical"),
+  composicao: text("composicao"), // id da composição própria do Remotion (vídeos importados ou feitos à mão)
   criadoEm: criadoEm(),
 });
 

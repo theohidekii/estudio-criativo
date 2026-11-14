@@ -22,6 +22,7 @@ export default function Videos() {
   const d = db();
   const rs = d.select().from(roteiros).all().filter((r) => r.texto.trim());
   const vs = d.select().from(videos).orderBy(desc(videos.id)).all();
+  const todasVersoes = d.select().from(versoesVideo).all();
   return (
     <>
       <PageHead titulo="Vídeos" descricao="Transforme um roteiro em narração, cenas animadas e um MP4 vertical." />
@@ -39,7 +40,23 @@ export default function Videos() {
       {vs.length === 0 ? (
         <div className="vazio"><strong>Nenhum vídeo ainda</strong>Escolha um roteiro acima para começar.</div>
       ) : (
-        <div className="lista">{vs.map((v) => <Link key={v.id} href={`/videos/${v.id}`}><span>{v.titulo}</span><span className="mono mudo">#{v.id}</span></Link>)}</div>
+        <>
+          <div className="cab"><span className="grow">Título</span><span style={{ width: 130 }}>Origem</span><span style={{ width: 70 }}>Versões</span><span style={{ width: 70 }}>Duração</span></div>
+          <div className="lista" style={{ borderTop: 0 }}>
+            {vs.map((v) => {
+              const vers = todasVersoes.filter((x) => x.videoId === v.id);
+              const ultima = [...vers].sort((a, b) => b.numero - a.numero).find((x) => x.duracao);
+              return (
+                <Link key={v.id} href={`/videos/${v.id}`}>
+                  <span className="grow titulo">{v.titulo}</span>
+                  <span style={{ width: 130 }}>{v.composicao ? <span className="etiqueta">{v.composicao}</span> : <span className="mudo pequeno">Gerado no sistema</span>}</span>
+                  <span className="mono mudo" style={{ width: 70 }}>{vers.length}</span>
+                  <span className="mono mudo" style={{ width: 70 }}>{ultima?.duracao ? `${ultima.duracao.toFixed(1)} s` : "–"}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </>
       )}
     </>
   );

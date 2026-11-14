@@ -9,6 +9,7 @@
     "db:migrar": "npm run migrar -w @estudio/db",
     "video:studio": "npm run dev -w @estudio/video",
     "test": "npm test -w @estudio/db",
+    "acervo": "tsx packages/db/src/importar-acervo.ts",
     "agente": "npm start -w @estudio/agente --"
   }
 }

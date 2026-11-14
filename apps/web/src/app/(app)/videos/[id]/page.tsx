@@ -38,6 +38,30 @@ export default async function Video({ params, searchParams }: { params: Promise<
   const online = d.select().from(agentes).where(eq(agentes.usuarioId, uid)).all()
     .some((a) => a.ultimoContato && Date.now() - a.ultimoContato.getTime() < 30000);
 
+  if (vid.composicao) {
+    // vídeo feito à mão / importado: composição própria do Remotion + MP4 já renderizados
+    return (
+      <>
+        <PageHead titulo={vid.titulo} descricao={<span className="mono">{vid.composicao} · versão {ver.numero}</span>}>
+          {todas.map((x) => <a key={x.id} href={`/videos/${id}?v=${x.numero}`} className={`etiqueta${x.id === ver.id ? " acento" : ""}`}>v{x.numero}</a>)}
+          <a href={`/studio?c=${vid.composicao}`} className="btn">Editar no Remotion</a>
+        </PageHead>
+        {ver.status === "pronto" ? (
+          <div className="editor">
+            <video controls preload="metadata" src={`/api/videos/${id}/arquivo?v=${ver.numero}#t=1`} style={{ width: 320, borderRadius: 10, border: "1px solid var(--linha-forte)", background: "#000" }} />
+            <div>
+              <h2 style={{ marginTop: 0 }}>Versão {ver.numero}</h2>
+              <p className="mudo">{ver.duracao ? <span className="mono">{ver.duracao.toFixed(1)} s</span> : null} Vídeo já renderizado. Para mudar cenas, textos ou tempos, abra a composição no editor do Remotion e renderize de novo.</p>
+              {rot && <p><a href={`/roteiros/${rot.id}`} style={{ textDecoration: "underline" }}>Ver roteiro e pesquisa</a></p>}
+            </div>
+          </div>
+        ) : (
+          <div className="vazio"><strong>Ainda sem vídeo renderizado</strong>Abra a composição no editor do Remotion para ver e renderizar.</div>
+        )}
+      </>
+    );
+  }
+
   async function voz(form: FormData) {
     "use server";
     const dd = db();

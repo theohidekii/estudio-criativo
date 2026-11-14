@@ -24,10 +24,17 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
   const { erro } = await searchParams;
   return (
     <div className="entrada">
-      <form action={entrar} className="card">
-        <div className="marca" style={{ padding: "0 0 22px" }}><i aria-hidden="true" />Estúdio Criativo</div>
-        <h1>Entrar</h1>
-        <p className="mudo" style={{ marginBottom: 20 }}>No primeiro acesso, estes dados criam a conta de administrador.</p>
+      <div className="arte">
+        <div className="marca" style={{ padding: 0 }}>Estúdio<small>sala de edição</small></div>
+        <div>
+          <h1>Do roteiro ao vídeo no ar.</h1>
+          <p style={{ marginTop: 20 }}>Ideias, narração, cenas animadas e métricas em um só lugar.</p>
+        </div>
+        <span className="mono mudo">Vertical 1080 × 1920 · 30 fps</span>
+      </div>
+      <form action={entrar}>
+        <h2>Entrar</h2>
+        <p className="mudo" style={{ marginBottom: 24 }}>No primeiro acesso, estes dados criam a conta de administrador.</p>
         {erro && <p className="aviso erro" role="alert">E-mail ou senha incorretos. Confira os dados e tente de novo.</p>}
         <label>E-mail<input name="email" type="email" autoComplete="email" required autoFocus /></label>
         <label>Senha<input name="senha" type="password" autoComplete="current-password" required minLength={8} placeholder="Mínimo de 8 caracteres" /></label>

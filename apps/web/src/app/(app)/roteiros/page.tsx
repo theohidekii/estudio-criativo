@@ -4,10 +4,9 @@ import { redirect } from "next/navigation";
 import { perfis, roteiros, series } from "@estudio/db";
 import { db } from "@/lib/db";
 import { PageHead } from "../PageHead";
+import { ETAPAS, NOME_ETAPA as NOMES, Trilha } from "../Trilha";
 
 export const dynamic = "force-dynamic";
-const ETAPAS = ["ideia", "rascunho", "aprovado", "gravado", "publicado"] as const;
-const NOMES: Record<string, string> = { ideia: "Ideia", rascunho: "Rascunho", aprovado: "Aprovado", gravado: "Gravado", publicado: "Publicado" };
 
 async function criar(form: FormData) {
   "use server";
@@ -51,23 +50,20 @@ export default function Roteiros() {
           </form>
         </details>
       )}
-      <div className="quadro" style={{ marginTop: 20 }}>
-        {ETAPAS.map((e) => {
-          const itens = todos.filter((r) => r.etapa === e);
-          return (
-            <section key={e} className="coluna" aria-label={NOMES[e]}>
-              <h3><span>{NOMES[e]}</span><span className="mono">{itens.length}</span></h3>
-              {itens.length === 0 && <div className="vazia" />}
-              {itens.map((r) => (
-                <Link key={r.id} href={`/roteiros/${r.id}`} className="item">
-                  {r.titulo}
-                  {r.serieId && <div className="mudo pequeno" style={{ fontWeight: 400 }}>{nomeSerie.get(r.serieId)}</div>}
-                </Link>
-              ))}
-            </section>
-          );
-        })}
-      </div>
+      {todos.length > 0 && (
+        <>
+          <div className="cab"><span className="grow">Título</span><span style={{ width: 90 }}>Etapa</span><span style={{ width: 104 }}>Trilha</span></div>
+          <div className="lista" style={{ borderTop: 0 }}>
+            {[...todos].sort((a, b) => ETAPAS.indexOf(b.etapa) - ETAPAS.indexOf(a.etapa) || b.id - a.id).map((r) => (
+              <Link key={r.id} href={`/roteiros/${r.id}`}>
+                <span className="grow"><span className="titulo">{r.titulo}</span>{r.serieId && <span className="mudo pequeno"> · {nomeSerie.get(r.serieId)}</span>}</span>
+                <span className="mudo pequeno" style={{ width: 90 }}>{NOMES[r.etapa]}</span>
+                <span style={{ width: 104 }}><Trilha etapa={r.etapa} /></span>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
     </>
   );
 }

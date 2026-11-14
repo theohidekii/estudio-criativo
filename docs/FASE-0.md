@@ -53,3 +53,9 @@ Fluxo: roteiro → **narração** (ElevenLabs com tempos por palavra; velocidade
 - Rotas das telas internas agrupadas em `(app)`; o login fica fora, sem a barra lateral. Cabeçalho padrão de página em `PageHead`.
 - Estúdio de vídeo como sequência de 4 etapas (narração, cenas, pré-visualização, render) com o estado de cada uma.
 - Estados vazios com orientação, erros que dizem o que fazer, botões com hierarquia (principal, secundário, perigo), foco visível e respeito a `prefers-reduced-motion`.
+
+## Acervo, Remotion Studio e nova direção visual
+
+- **Acervo importado** (`npm run acervo -- --origem "<pasta do my-video>"`): 10 roteiros (Markdown) e 8 vídeos com 11 versões renderizadas, ligados às composições do Remotion (coluna `videos.composicao`). Idempotente. Os MP4 vão para `storage/acervo/` e as mídias para `packages/video/public/` (ambos fora do git).
+- **Editor Remotion dentro do sistema** (`/studio`): o site liga o Remotion Studio sob demanda (porta 3030) e o mostra num iframe, abrindo direto na composição do vídeo (`/studio?c=ManiacoP1`). Vídeos importados mostram o MP4 e o botão "Editar no Remotion".
+- **Novo visual "sala de edição"**: grafite quente, um único âmbar, serifa Newsreader nos títulos, Instrument Sans no texto, JetBrains Mono para tempos; sem cartões nem ícones, listas em linhas finas, campos só com sublinhado e a **trilha de produção** (5 segmentos) mostrando a etapa de cada roteiro.

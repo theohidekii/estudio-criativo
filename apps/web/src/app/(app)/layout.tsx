@@ -15,7 +15,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="app">
       <aside className="lateral">
-        <div className="marca"><i aria-hidden="true" />Estúdio Criativo</div>
+        <div className="marca">Estúdio<small>sala de edição</small></div>
         <Nav />
         <Link href="/agentes" className="estado" title="O agente roda no seu computador e executa as tarefas de IA">
           <span className={`ponto${online ? " on" : ""}`} />

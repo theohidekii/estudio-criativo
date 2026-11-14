@@ -1,15 +1,16 @@
 import "./globals.css";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Instrument_Sans, JetBrains_Mono, Newsreader } from "next/font/google";
 import type { ReactNode } from "react";
 
-const sans = Geist({ subsets: ["latin"], variable: "--fonte-sans", display: "swap" });
-const mono = Geist_Mono({ subsets: ["latin"], variable: "--fonte-mono", display: "swap" });
+const serif = Newsreader({ subsets: ["latin"], variable: "--fonte-serif", display: "swap", style: ["normal", "italic"] });
+const sans = Instrument_Sans({ subsets: ["latin"], variable: "--fonte-sans", display: "swap" });
+const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--fonte-mono", display: "swap" });
 
 export const metadata = { title: "Estúdio Criativo" };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${sans.variable} ${mono.variable}`}>
+    <html lang="pt-BR" className={`${serif.variable} ${sans.variable} ${mono.variable}`}>
       <body>{children}</body>
     </html>
   );
