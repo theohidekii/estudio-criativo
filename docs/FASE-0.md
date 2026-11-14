@@ -59,3 +59,8 @@ Fluxo: roteiro → **narração** (ElevenLabs com tempos por palavra; velocidade
 - **Acervo importado** (`npm run acervo -- --origem "<pasta do my-video>"`): 10 roteiros (Markdown) e 8 vídeos com 11 versões renderizadas, ligados às composições do Remotion (coluna `videos.composicao`). Idempotente. Os MP4 vão para `storage/acervo/` e as mídias para `packages/video/public/` (ambos fora do git).
 - **Editor Remotion dentro do sistema** (`/studio`): o site liga o Remotion Studio sob demanda (porta 3030) e o mostra num iframe, abrindo direto na composição do vídeo (`/studio?c=ManiacoP1`). Vídeos importados mostram o MP4 e o botão "Editar no Remotion".
 - **Novo visual "sala de edição"**: grafite quente, um único âmbar, serifa Newsreader nos títulos, Instrument Sans no texto, JetBrains Mono para tempos; sem cartões nem ícones, listas em linhas finas, campos só com sublinhado e a **trilha de produção** (5 segmentos) mostrando a etapa de cada roteiro.
+
+## Fase 3 (métricas): em andamento
+
+Pronto: tabelas `publicacoes` e `metricas_snapshot` (histórico) e colunas novas em `contas_sociais` (migração 0007); pacote `packages/redes` com tipos, criptografia AES-256-GCM dos tokens (`TOKEN_ENC_KEY`) e cliente HTTP.
+Falta: clientes YouTube, TikTok e Instagram (métricas confirmadas na documentação oficial), leitura de CSV, OAuth, páginas Contas e Métricas, coleta a cada hora. Nada disso foi testado com contas reais.

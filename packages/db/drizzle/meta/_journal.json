@@ -50,6 +50,13 @@
       "when": 1794660831348,
       "tag": "0006_flimsy_nekra",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1794664740282,
+      "tag": "0007_last_beyonder",
+      "breakpoints": true
     }
   ]
 }

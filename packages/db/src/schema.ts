@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 const id = () => integer("id").primaryKey({ autoIncrement: true });
 const criadoEm = () =>
@@ -32,6 +32,10 @@ export const contasSociais = sqliteTable("contas_sociais", {
   idExterno: text("id_externo"),
   tokenCriptografado: text("token_criptografado"),
   expiraEm: integer("expira_em", { mode: "timestamp" }),
+  refreshTokenCriptografado: text("refresh_token_criptografado"),
+  extra: text("extra").notNull().default("{}"), // JSON: ids específicos da rede (ex.: igUserId, pageId, canal)
+  ultimaColeta: integer("ultima_coleta", { mode: "timestamp" }),
+  erro: text("erro"),
   criadoEm: criadoEm(),
 });
 
@@ -149,4 +153,34 @@ export const versoesVideo = sqliteTable("versoes_video", {
   arquivoVideo: text("arquivo_video"),
   erro: text("erro"),
   criadoEm: criadoEm(),
+});
+
+/** Vídeo publicado em uma rede (importado da API ou cadastrado à mão), opcionalmente ligado a um vídeo do sistema. */
+export const publicacoes = sqliteTable("publicacoes", {
+  id: id(),
+  contaId: integer("conta_id").notNull().references(() => contasSociais.id, { onDelete: "cascade" }),
+  rede: text("rede", { enum: ["instagram", "tiktok", "facebook", "youtube"] }).notNull(),
+  idExterno: text("id_externo").notNull(),
+  titulo: text("titulo").notNull().default(""),
+  url: text("url").notNull().default(""),
+  publicadoEm: integer("publicado_em", { mode: "timestamp" }),
+  videoId: integer("video_id").references(() => videos.id, { onDelete: "set null" }),
+  criadoEm: criadoEm(),
+}, (t) => [uniqueIndex("publicacoes_conta_externo").on(t.contaId, t.idExterno)]);
+
+/** Histórico: uma linha por coleta (a cada hora pela API, ou à mão). */
+export const metricasSnapshot = sqliteTable("metricas_snapshot", {
+  id: id(),
+  publicacaoId: integer("publicacao_id").notNull().references(() => publicacoes.id, { onDelete: "cascade" }),
+  coletadoEm: integer("coletado_em", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  views: integer("views").notNull().default(0),
+  curtidas: integer("curtidas").notNull().default(0),
+  comentarios: integer("comentarios").notNull().default(0),
+  compartilhamentos: integer("compartilhamentos").notNull().default(0),
+  salvamentos: integer("salvamentos").notNull().default(0),
+  alcance: integer("alcance"),
+  tempoMedio: real("tempo_medio"), // segundos
+  retencao: real("retencao"), // % do vídeo assistido em média
+  seguidoresGanhos: integer("seguidores_ganhos"),
+  fonte: text("fonte", { enum: ["api", "manual"] }).notNull().default("api"),
 });
