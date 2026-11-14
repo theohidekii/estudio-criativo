@@ -82,7 +82,26 @@ Regras de layout (tela vertical 1080x1920):
 - Troque de cena a cada 3 a 5 segundos, na virada de cada frase. Entre 8 e 16 cenas. Alterne cenários: colinas (dia e campo), deserto, noite (promessa, mistério), templo (lugares sagrados), pergaminho (leitura e versículo).
 - No máximo 3 personagens por cena; com 2 ou 3, espalhe o x e use altura 650 a 760. Cada personagem mantém a mesma roupa em todo o vídeo.`;
 
-const esquemaDo = (estilo: string) => (estilo === "volta-por-cima" ? ESQUEMA_VPC : estilo === "biblia-animada" ? ESQUEMA_BIBLIA : ESQUEMA_CENAS);
+const ESQUEMA_MUNDO = `Responda SOMENTE com JSON válido (sem markdown, sem comentários) no estilo "Mundo Oculto": curiosidades e ciência explicadas em desenhos de giz, linhas brancas sobre roxo escuro, com destaques em vermelho.
+{"duracao": <segundos>, "estilo": "mundo-oculto", "destaques": ["PALAVRA", ...],
+ "cenas": [{
+  "inicio": <segundos, a primeira é 0>,
+  "cenario": {"tipo": "escuro"},
+  "personagens": [{"x": 0-1080, "y": 1500-1600, "altura": 650-800, "expr": "neutral|stern|smile|shock|nervous|relief|dazed|pained|grin", "flip": false, "seed": 1,
+     "roupa": {"jacket": "#rrggbb", "pants": "#rrggbb", "hat": "hair", "hair": "#rrggbb", "skin": "#rrggbb", "glasses": false}}],
+  "icones": [{"tipo": "ovni"|"olho"|"cerebro"|"lampada"|"relogio"|"seta"|"interrogacao"|"circulo"|"coracao"|"estrela"|"sol", "x": 0-1080, "y": 600-1350, "tamanho": 160-380, "destaque": true|false, "aparece": <segundos dentro da cena>}],
+  "textos": [{"texto": "palavra ou 2 a 3 palavras", "x": 0-1080, "y": 600-1500, "tamanho": 56-72, "estilo": "etiqueta", "cor": "#ff4d4d" (opcional), "aparece": <segundos dentro da cena>}],
+  "zoom": [1, 1.05], "flash": false }]}
+O sistema escreve sozinho, em letra manuscrita no topo, cada frase da narração; não escreva legendas. Em "destaques" liste de 6 a 16 palavras da narração (maiúsculas, sem pontuação): números, nomes e a ideia central de cada virada.
+Regras de conteúdo:
+- Fidelidade: afirme somente o que está no roteiro. Não acrescente números, datas ou fatos novos nos desenhos nem nas anotações.
+- Desenhe o conceito: cada cena é um pequeno infográfico de giz feito de ícones, setas e anotações curtas, como um quadro de explicação. Personagens são opcionais (0 a 2): use-os para reações e para quem faz a pergunta.
+Regras de layout (tela vertical 1080x1920):
+- O topo (y < 560) é da frase manuscrita: não coloque nada lá. Os desenhos ocupam y 700 a 1500: centralize o conjunto em torno de y 1100, usando bem o espaço (ícones grandes, 280 a 400) e deixando margem nas laterais.
+- Troque de cena a cada 2 a 4 segundos, na virada de cada frase. Entre 8 e 20 cenas. Até 4 ícones por cena, escalonando "aparece" (0, 0.6, 1.2...) para que se desenhem em sequência; use "circulo" em vermelho para chamar atenção a algo e "seta" para mostrar sentido ou causa.
+- Anotações ("etiqueta"): no máximo 3 palavras, perto do desenho a que se referem. Use a cor vermelha só para o dado mais importante da cena.`;
+
+const esquemaDo = (estilo: string) => (estilo === "volta-por-cima" ? ESQUEMA_VPC : estilo === "biblia-animada" ? ESQUEMA_BIBLIA : estilo === "mundo-oculto" ? ESQUEMA_MUNDO : ESQUEMA_CENAS);
 
 export const pedidoCenas = (roteiro: string, palavras: { w: string; s: number }[], duracao: number, estilo = "classico") =>
   `${esquemaDo(estilo)}

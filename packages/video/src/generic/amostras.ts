@@ -73,3 +73,23 @@ export const AMOSTRA_BIBLIA: Cenas = {
       textos: [{ texto: "Um sinal de promessa", x: 540, y: 460, tamanho: 70, estilo: "grande", cor: "#c8402f" }], referencia: "Gênesis 9:13", icones: [{ tipo: "coracao", x: 880, y: 760, tamanho: 130 }] },
   ],
 };
+
+const CIENTISTA = { jacket: "#d9d4ee", pants: "#6a5fa0", boots: "#2a2440", hat: "hair" as const, hair: "#3a2a20", skin: "#f1c19a", glasses: true };
+const falaM = "O polvo tem três corações. Dois levam o sangue até as brânquias. O terceiro leva o sangue para o resto do corpo. E o sangue dele é azul, por causa do cobre.";
+const palavrasM = falaM.split(" ").map((w, i) => ({ w, s: i * 0.42, e: i * 0.42 + 0.38 }));
+
+export const AMOSTRA_MUNDO: Cenas = {
+  duracao: 12,
+  estilo: "mundo-oculto",
+  destaques: ["TRÊS", "CORAÇÕES", "AZUL", "COBRE"],
+  legendas: montarLegendas(palavrasM, 6, 34, false),
+  cenas: [
+    { inicio: 0, cenario: { tipo: "escuro" }, personagens: [{ x: 540, y: 1560, altura: 760, expr: "shock", roupa: CIENTISTA }],
+      textos: [{ texto: "polvo?", x: 800, y: 1040, tamanho: 60, estilo: "etiqueta", cor: "#ff4d4d" }], icones: [{ tipo: "interrogacao", x: 260, y: 980, tamanho: 220 }] },
+    { inicio: 3.6, cenario: { tipo: "escuro" }, personagens: [],
+      textos: [{ texto: "brânquias", x: 300, y: 1450, tamanho: 60, estilo: "etiqueta" }, { texto: "corpo", x: 800, y: 1450, tamanho: 60, estilo: "etiqueta" }],
+      icones: [{ tipo: "coracao", x: 300, y: 1000, tamanho: 250, destaque: true }, { tipo: "coracao", x: 540, y: 1180, tamanho: 220, destaque: true }, { tipo: "coracao", x: 800, y: 1000, tamanho: 250, destaque: true, aparece: 0.7 }, { tipo: "seta", x: 540, y: 1330, tamanho: 180, aparece: 1.2 }] },
+    { inicio: 8, cenario: { tipo: "escuro" }, personagens: [],
+      textos: [{ texto: "Cu", x: 540, y: 1560, tamanho: 110, estilo: "grande", cor: "#ff4d4d" }], icones: [{ tipo: "olho", x: 540, y: 1000, tamanho: 360 }, { tipo: "circulo", x: 540, y: 1000, tamanho: 470, aparece: 0.8 }] },
+  ],
+};

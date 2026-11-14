@@ -1,8 +1,8 @@
 // Formato de dados das cenas. Sem imports do Remotion para poder ser usado também no servidor (validação).
 export const EXPRESSOES = ["neutral", "stern", "grin", "laugh", "whistle", "nervous", "shock", "relief", "dazed", "pained", "smile", "smile_closed"] as const;
 export const CENARIOS = ["sala", "parque", "escuro", "cor", "chapado", "rua", "quarto", "deserto", "colinas", "noite", "templo", "pergaminho"] as const;
-export const ICONES = ["cruz", "coracao", "estrela", "sol", "coroa"] as const;
-export const ESTILOS = ["classico", "volta-por-cima", "biblia-animada"] as const;
+export const ICONES = ["cruz", "coracao", "estrela", "sol", "coroa", "ovni", "olho", "cerebro", "lampada", "relogio", "seta", "interrogacao", "circulo"] as const;
+export const ESTILOS = ["classico", "volta-por-cima", "biblia-animada", "mundo-oculto"] as const;
 export const CORES_BARRA = ["vermelho", "verde", "azul", "amarelo"] as const;
 
 export type Estilo = (typeof ESTILOS)[number];
@@ -13,7 +13,7 @@ export type Adesivo = { texto: string; x: number; y: number; cor?: string; rotac
 export type Barra = { nome: string; valor: number; texto?: string; cor: (typeof CORES_BARRA)[number] };
 export type Hud = { titulo: string; numero: number; barras: Barra[] };
 export type Celular = { x: number; y: number; largura: number; titulo: string; tipo: "chat" | "pix"; linhas: { de: "eu" | "ele"; texto: string }[]; aparece?: number };
-export type Icone = { tipo: (typeof ICONES)[number]; x: number; y: number; tamanho: number; aparece?: number };
+export type Icone = { tipo: (typeof ICONES)[number]; x: number; y: number; tamanho: number; aparece?: number; destaque?: boolean };
 export type Legenda = { inicio: number; fim: number; texto: string };
 export type Cena = {
   inicio: number; // segundos desde o começo do vídeo
@@ -44,19 +44,19 @@ const txt = (v: unknown, max: number, nome: string) => {
 };
 
 /** Agrupa as palavras da narração em legendas de 1 a 3 palavras (estilo de legenda curta e grande). */
-export function montarLegendas(palavras: { w: string; s: number; e: number }[], maxPalavras = 3): Legenda[] {
+export function montarLegendas(palavras: { w: string; s: number; e: number }[], maxPalavras = 3, maxChars = 16, maiusculas = true): Legenda[] {
   const grupos: { w: string; s: number; e: number }[][] = [];
   let atual: { w: string; s: number; e: number }[] = [];
   for (const p of palavras) {
     atual.push(p);
-    const fecha = /[.!?:;,]$/.test(p.w) || atual.length >= maxPalavras || atual.map((x) => x.w).join(" ").length >= 16;
+    const fecha = /[.!?:;,]$/.test(p.w) || atual.length >= maxPalavras || atual.map((x) => x.w).join(" ").length >= maxChars;
     if (fecha) { grupos.push(atual); atual = []; }
   }
   if (atual.length) grupos.push(atual);
   return grupos.map((g, i) => ({
     inicio: g[0].s,
     fim: grupos[i + 1] ? grupos[i + 1][0].s : g[g.length - 1].e + 0.3,
-    texto: g.map((x) => x.w).join(" ").replace(/[.,;:]+$/, "").toUpperCase(),
+    texto: ((t) => (maiusculas ? t.toUpperCase() : t))(g.map((x) => x.w).join(" ").replace(/[.,;:]+$/, "")),
   }));
 }
 
@@ -93,7 +93,7 @@ export function validarCenas(bruto: unknown, duracao: number): Cenas {
     }));
     const icones: Icone[] = (c.icones ?? []).slice(0, 4).map((k: any, j: number) => {
       if (!ICONES.includes(k?.tipo)) throw new Error(`${p} icone ${j + 1}: tipo deve ser ${ICONES.join(", ")}`);
-      return { tipo: k.tipo, x: num(k.x, 0, 1080, `${p} icone x`), y: num(k.y, 200, 1800, `${p} icone y`), tamanho: num(k.tamanho, 60, 320, `${p} icone tamanho`), aparece: Number.isFinite(k.aparece) ? Math.max(0, k.aparece) : 0 };
+      return { tipo: k.tipo, x: num(k.x, 0, 1080, `${p} icone x`), y: num(k.y, 200, 1800, `${p} icone y`), tamanho: Math.max(60, Math.min(450, num(k.tamanho, 0, 5000, `${p} icone tamanho`))), aparece: Number.isFinite(k.aparece) ? Math.max(0, k.aparece) : 0, destaque: !!k.destaque };
     });
     const referencia = typeof c.referencia === "string" && c.referencia.trim() ? txt(c.referencia, 40, `${p} referencia`) : undefined;
     let celular: Celular | undefined;
@@ -135,4 +135,26 @@ export function validarCenas(bruto: unknown, duracao: number): Cenas {
     ? (o.legendas as any[]).slice(0, 400).map((l, i) => ({ inicio: num(l?.inicio, 0, duracao + 5, `legenda ${i + 1} inicio`), fim: num(l?.fim, 0, duracao + 5, `legenda ${i + 1} fim`), texto: txt(l?.texto, 60, `legenda ${i + 1}`) }))
     : undefined;
   return { duracao, estilo, destaques, legendas, cenas };
+}
+
+/** Legendas de cada estilo: o clássico não usa; os demais agrupam as palavras com tamanhos próprios. */
+export function legendasDoEstilo(estilo: Estilo, palavras: { w: string; s: number; e: number }[]): Legenda[] | undefined {
+  if (estilo === "classico") return undefined;
+  if (estilo === "mundo-oculto") return montarLegendas(palavras, 6, 34, false);
+  return montarLegendas(palavras, 3);
+}
+
+/** Extrai o primeiro objeto JSON completo de um texto da IA, ignorando cercas ``` e qualquer texto antes ou depois. */
+export function extrairJson(texto: string): unknown {
+  const ini = texto.indexOf("{");
+  if (ini < 0) throw new Error("a resposta da IA não tem JSON");
+  let prof = 0, emTexto = false, escape = false;
+  for (let i = ini; i < texto.length; i++) {
+    const c = texto[i];
+    if (emTexto) { if (escape) escape = false; else if (c === "\\") escape = true; else if (c === '"') emTexto = false; continue; }
+    if (c === '"') emTexto = true;
+    else if (c === "{") prof++;
+    else if (c === "}" && --prof === 0) return JSON.parse(texto.slice(ini, i + 1));
+  }
+  throw new Error("o JSON da IA está incompleto (cortado)");
 }

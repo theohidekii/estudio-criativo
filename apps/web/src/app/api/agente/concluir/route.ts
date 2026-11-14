@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { mensagens, notificacoes, roteiros, tarefas, versoesVideo } from "@estudio/db";
-import { ESTILOS, montarLegendas, validarCenas } from "@estudio/video/src/generic/tipos";
+import { ESTILOS, extrairJson, legendasDoEstilo, validarCenas } from "@estudio/video/src/generic/tipos";
 import { concluir, falhar } from "@estudio/db/src/fila";
 import { agenteDaRequisicao } from "@/lib/agente";
 import { db } from "@/lib/db";
@@ -19,13 +19,12 @@ export async function POST(req: Request) {
     // IA devolveu o JSON de cenas (geração ou ajuste): validar antes de aceitar
     try {
       if (erro) throw new Error(erro);
-      const limpo = (resultado ?? "").replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim();
-      const cenas = validarCenas(JSON.parse(limpo.slice(limpo.indexOf("{"), limpo.lastIndexOf("}") + 1)), duracao ?? 60);
+      const cenas = validarCenas(extrairJson(resultado ?? ""), duracao ?? 60);
       // O estilo é decidido pelo vídeo, não pela IA; no estilo de legenda curta o sistema monta as legendas pelos tempos da narração.
       const ver = d.select().from(versoesVideo).where(eq(versoesVideo.id, versaoId)).get();
       const estilo = (ESTILOS as readonly string[]).includes(payloadEstilo ?? "") ? (payloadEstilo as (typeof ESTILOS)[number]) : "classico";
       cenas.estilo = estilo;
-      if (estilo !== "classico" && ver) cenas.legendas = montarLegendas(JSON.parse(ver.palavras), 3);
+      if (ver) cenas.legendas = legendasDoEstilo(estilo, JSON.parse(ver.palavras));
       concluir(d, id);
       d.update(versoesVideo).set({ cenas: JSON.stringify(cenas), status: "cenas_prontas", erro: null }).where(eq(versoesVideo.id, versaoId)).run();
     } catch (e) {

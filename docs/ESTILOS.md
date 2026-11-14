@@ -111,3 +111,17 @@ Pacote visual em `packages/video/src/generic/biblia.tsx`; exemplo (Noé e a arca
 - **IA:** prompt com regra de fidelidade: só usa referências que já estão no roteiro, nunca inventa ou completa versículos; sem violência explícita.
 - Testado com Claude real (roteiro de Davi e Golias): JSON válido, 13 cenas e somente as 2 referências do roteiro; fluxo pelo sistema confirmado (estilo, legendas automáticas, editor com pré-visualização).
 - Limites: o conteúdo religioso precisa de revisão humana antes de publicar; personagens ainda do motor atual; sem trilha nem efeitos sonoros; não testado com narração e render completos neste estilo.
+
+---
+
+# Estilo implementado: Mundo Oculto
+
+Pacote visual em `packages/video/src/generic/mundo.tsx`; exemplo (polvo e seus três corações, em palavras próprias) em `amostras.ts`.
+
+- **Giz:** os personagens do motor passam por um filtro SVG (`giz`) que os converte em contorno branco; um segundo filtro (`tremor`) balança as linhas e **troca de semente a cada 3 quadros**, dando o efeito de desenho à mão "fervendo" (conferido: quadros da mesma semente têm similaridade 0,9995; ao trocar, 0,970).
+- **Ícones de linha** (ovni, olho, cérebro, lâmpada, relógio, seta, interrogação, círculo, coração, estrela, sol) que **se desenham sozinhos** em 0,6 s; vermelho quando `destaque`.
+- **Texto manuscrito** (Patrick Hand, do Google Fonts via `@remotion/google-fonts`): a frase da narração aparece no topo sendo escrita da esquerda para a direita, com palavras de `destaques` em vermelho; anotações curtas com sublinhado vermelho animado perto dos desenhos.
+- **IA:** prompt para infográficos de giz (cada cena é feita de ícones, setas e anotações), com regra de fidelidade (não acrescentar números, datas ou fatos além do roteiro).
+- **Render:** 12 s de vídeo em 53 s (filtros pesados, mas viável).
+- Bugs encontrados e corrigidos neste teste: tamanho de ícone rejeitado pelo validador apesar de o prompt permitir (agora é limitado) e resposta da IA com texto depois do JSON (novo `extrairJson`, que acha o fim exato do objeto).
+- Limites: personagens são os do motor atual (virados contorno); a letra depende de baixar a fonte do Google no momento do render; sem trilha nem efeitos sonoros; o estilo não foi testado com narração real e render completo pelo sistema, só com cenas reais da IA e render da amostra.
