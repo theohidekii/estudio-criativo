@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 /** GET: o Studio está rodando? */
 export async function GET() {
   return Response.json({ ativo: await studioAtivo(), url: URL_STUDIO });
+
 }
 
 /** POST: inicia o Studio, se necessário. */

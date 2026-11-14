@@ -11,7 +11,7 @@ export default function StudioFrame({ composicao }: { composicao?: string }) {
     (async () => {
       try {
         await fetch("/api/studio", { method: "POST" });
-        for (let i = 0; i < 60 && vivo; i++) {
+        for (let i = 0; i < 160 && vivo; i++) {
           const j = (await (await fetch("/api/studio")).json()) as { ativo: boolean; url: string };
           if (j.ativo) { setUrl(j.url); setEstado("pronto"); return; }
           await new Promise((r) => setTimeout(r, 1500));

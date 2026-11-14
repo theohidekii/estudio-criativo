@@ -15,7 +15,7 @@ const FPS = 30;
 export type GenericoProps = { cenas: Cenas; audio?: string };
 
 const paraOutfit = (r: Roupa): Outfit => ({
-  jacket: r.jacket, pants: r.pants, boots: r.boots ?? INK, hat: r.hat ?? "hair", hair: r.hair, cap: r.cap, skin: r.skin, glasses: r.glasses, build: r.build, dress: r.tunica, moustache: r.barba,
+  jacket: r.jacket, pants: r.pants, boots: r.boots ?? INK, hat: r.hat ?? "hair", hair: r.hair ?? "#3a2a20", cap: r.cap ?? "#d1452e", skin: r.skin, glasses: r.glasses, build: r.build, dress: r.tunica, moustache: r.barba,
 });
 
 const Grande: React.FC<{ t: Texto; sec: number }> = ({ t, sec }) => {
