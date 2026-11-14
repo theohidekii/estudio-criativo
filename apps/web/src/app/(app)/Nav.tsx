@@ -9,10 +9,14 @@ const GRUPOS: { titulo: string; itens: { href: string; nome: string; n?: string 
     { href: "/videos", nome: "Vídeos", n: "3" },
     { href: "/studio", nome: "Editor", n: "4" },
   ] },
+  { titulo: "Acompanhar", itens: [
+    { href: "/metricas", nome: "Métricas" },
+  ] },
   { titulo: "Biblioteca", itens: [
     { href: "/perfis", nome: "Perfis" },
     { href: "/vozes", nome: "Vozes" },
     { href: "/estilos", nome: "Estilos" },
+    { href: "/contas", nome: "Contas" },
   ] },
 ];
 

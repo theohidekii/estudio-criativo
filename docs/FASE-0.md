@@ -64,3 +64,12 @@ Fluxo: roteiro → **narração** (ElevenLabs com tempos por palavra; velocidade
 
 Pronto: tabelas `publicacoes` e `metricas_snapshot` (histórico) e colunas novas em `contas_sociais` (migração 0007); pacote `packages/redes` com tipos, criptografia AES-256-GCM dos tokens (`TOKEN_ENC_KEY`) e cliente HTTP.
 Falta: clientes YouTube, TikTok e Instagram (métricas confirmadas na documentação oficial), leitura de CSV, OAuth, páginas Contas e Métricas, coleta a cada hora. Nada disso foi testado com contas reais.
+
+## Fase 3 — métricas (concluída, falta validar com contas reais)
+
+- **Páginas:** **Métricas** (totais, gráfico de views por dia, divisão por rede, ranking "onde cada vídeo foi melhor", melhores dias e horários a partir de 8 publicações com data, lançamento manual e importação de CSV), página de cada publicação com o histórico de coletas, e **Contas** (conectar redes, coletar agora, contas manuais, passo a passo).
+- **Pacote `packages/redes`:** clientes do YouTube (Data + Analytics), TikTok (Display API) e Instagram (insights por mídia), leitura de CSV e criptografia AES-256-GCM dos tokens. 10 testes com respostas simuladas.
+- **Servidor:** OAuth com `state` em cookie, renovação de token, coleta que grava um ponto de histórico por coleta, e coleta automática a cada hora (`COLETA_AUTOMATICA=1`, em `instrumentation-node.ts`).
+- **Teste de integração** (`apps/web/src/lib/redes.test.ts`): renovação, cifragem no banco, histórico sem duplicar, erro registrado na conta.
+- **Limites:** nada foi testado com contas reais (exige criar os apps na Meta, TikTok e Google); o TikTok não informa tempo médio de visualização; o Facebook não tem coleta automática (métricas não confirmadas), só entrada manual; o token da Meta dura cerca de 60 dias e precisa de nova conexão; o TikTok pode exigir HTTPS no redirecionamento.
+- **Bugs achados no teste:** respostas de erro do TikTok vêm com HTTP 200 (agora validadas), troca da cópia do pacote entre carregadores (o `fetch` simulado fica em `globalThis`), arquivo de instrumentação compilado para o edge (separado em `instrumentation-node.ts`) e tabela sem largura mínima.
