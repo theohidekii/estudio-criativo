@@ -29,3 +29,10 @@ Uso: em `/agentes` gere o token e rode `npm run agente -- --servidor http://loca
 - Botões de IA: **Pesquisar fatos** (Sonnet + WebSearch/WebFetch, só leitura da web) e **Escrever rascunho** (Sonnet, sem ferramentas). O agente só aceita essas duas ferramentas.
 - Testado com o Claude real: a pesquisa trouxe fontes e avisou o que não conseguiu confirmar; o rascunho usou só os fatos da pesquisa.
 - Correções: ações de formulário não podem capturar o objeto do banco; no Windows o `--tools ""` precisa de aspas literais.
+
+## Fase 1 — etapa 3: vozes (ElevenLabs)
+
+- Tabela `vozes`; cliente em `apps/web/src/lib/elevenlabs.ts` (chave só no servidor, `ELEVENLABS_API_KEY` em `apps/web/.env.local`).
+- Página **Vozes**: importa as vozes da conta (inclui Lucas e a Markel clonada), toca a amostra da ElevenLabs, gera amostra em pt-BR (guardada em `storage/amostras`, gasta créditos só na 1ª vez), ajusta estabilidade (0 / 0.5 / 1, exigência do eleven_v3) e velocidade, e define a voz padrão de cada perfil.
+- **Clonar voz** por upload de áudio, com caixa de autorização obrigatória. Não testado (consome vaga de voz e exige plano com clonagem).
+- A velocidade é guardada, mas aplicada depois, na etapa de geração do vídeo (como no `--speed` do script atual).

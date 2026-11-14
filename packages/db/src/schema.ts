@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 const id = () => integer("id").primaryKey({ autoIncrement: true });
 const criadoEm = () =>
@@ -109,5 +109,18 @@ export const mensagens = sqliteTable("mensagens", {
   papel: text("papel", { enum: ["usuario", "ia"] }).notNull(),
   texto: text("texto").notNull().default(""),
   status: text("status", { enum: ["pendente", "pronta", "erro"] }).notNull().default("pronta"),
+  criadoEm: criadoEm(),
+});
+
+export const vozes = sqliteTable("vozes", {
+  id: id(),
+  provedor: text("provedor").notNull().default("elevenlabs"),
+  idExterno: text("id_externo").notNull().unique(),
+  nome: text("nome").notNull(),
+  categoria: text("categoria").notNull().default(""),
+  descricao: text("descricao").notNull().default(""),
+  amostraUrl: text("amostra_url"),
+  estabilidade: real("estabilidade").notNull().default(0.5),
+  velocidade: real("velocidade").notNull().default(1),
   criadoEm: criadoEm(),
 });
