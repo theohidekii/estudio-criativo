@@ -5,13 +5,14 @@ import { AbsoluteFill, Audio, interpolate, staticFile, useCurrentFrame } from "r
 import { INK, Outfit } from "../videos/bridge/toon";
 import { Cam, Room, Tag, Toon } from "../videos/milgram/Milgram";
 import type { Cena, Cenas, Roupa, Texto } from "./tipos";
+import { CenarioBiblia, FaixaBiblia, IconeBiblia, LegendaBiblia, ReferenciaBiblia, SeloBiblia } from "./biblia";
 import { AdesivoVPC, CelularVPC, CenarioVPC, HudVPC, LegendaVPC, Pilula, Titulo, hudDaCena } from "./vpc";
 
 const FPS = 30;
 export type GenericoProps = { cenas: Cenas; audio?: string };
 
 const paraOutfit = (r: Roupa): Outfit => ({
-  jacket: r.jacket, pants: r.pants, boots: r.boots ?? INK, hat: r.hat ?? "hair", hair: r.hair, cap: r.cap, skin: r.skin, glasses: r.glasses, build: r.build,
+  jacket: r.jacket, pants: r.pants, boots: r.boots ?? INK, hat: r.hat ?? "hair", hair: r.hair, cap: r.cap, skin: r.skin, glasses: r.glasses, build: r.build, dress: r.tunica, moustache: r.barba,
 });
 
 const Grande: React.FC<{ t: Texto; sec: number }> = ({ t, sec }) => {
@@ -46,6 +47,22 @@ export const Generico: React.FC<GenericoProps> = ({ cenas, audio }) => {
   const personagens = c.personagens.map((p, j) => (
     <Toon key={`${i}-${j}`} o={paraOutfit(p.roupa)} expr={p.expr} seed={p.seed ?? j + 1} h={p.altura} x={p.x} y={p.y} mode={p.modo} flip={p.flip} />
   ));
+
+  if (cenas.estilo === "biblia-animada") {
+    return (
+      <AbsoluteFill style={{ background: "#000", opacity: fade }}>
+        {src && <Audio src={src} />}
+        <CenarioBiblia c={c}>
+          <Cam a={c.inicio} z0={c.zoom?.[0] ?? 1} z1={c.zoom?.[1] ?? 1.05} noZap>{personagens}</Cam>
+          {(c.icones ?? []).map((ic, j) => <IconeBiblia key={`i${i}-${j}`} i={ic} sec={local} />)}
+          {c.textos.map((t, j) => t.estilo === "grande" ? <FaixaBiblia key={`${i}-${j}`} t={t} sec={local} /> : <SeloBiblia key={`${i}-${j}`} t={t} sec={local} />)}
+          {c.referencia && <ReferenciaBiblia texto={c.referencia} sec={local} />}
+        </CenarioBiblia>
+        <LegendaBiblia sec={sec} legendas={cenas.legendas} destaques={cenas.destaques} />
+        {c.flash && local < 2 / FPS && <AbsoluteFill style={{ background: "#fff", opacity: 0.8 }} />}
+      </AbsoluteFill>
+    );
+  }
 
   if (vpc) {
     const hud = hudDaCena(lista, i);

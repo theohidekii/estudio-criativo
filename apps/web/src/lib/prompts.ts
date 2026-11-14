@@ -60,8 +60,32 @@ Regras de layout (tela vertical 1080x1920):
 - No máximo 3 personagens por cena; com 2 ou 3, espalhe o x (270, 540, 810) e use altura 650 a 750. Mantenha cada personagem com a mesma roupa em todo o vídeo.
 - Tom: humor leve e ágil. Se o tema for crime ou tragédia, não use este estilo: avise no campo "estilo" trocando para "classico".`;
 
+const ESQUEMA_BIBLIA = `Responda SOMENTE com JSON válido (sem markdown, sem comentários) no estilo "Bíblia Animada": histórias bíblicas para ver em família, vetor suave de livro infantil, tom respeitoso e acolhedor.
+{"duracao": <segundos>, "estilo": "biblia-animada", "destaques": ["PALAVRA", ...],
+ "cenas": [{
+  "inicio": <segundos, a primeira é 0>,
+  "cenario": {"tipo": "colinas"|"deserto"|"noite"|"templo"|"pergaminho", "cor": "#rrggbb" (opcional)},
+  "personagens": [{"x": 0-1080, "y": 1450-1550, "altura": 760-900, "expr": "neutral|stern|smile|smile_closed|relief|nervous|shock|dazed|pained|grin", "flip": false, "seed": 1,
+     "roupa": {"tunica": "#rrggbb", "jacket": "#rrggbb (igual à túnica)", "pants": "#rrggbb (igual à túnica)", "boots": "#8a6a3a", "hat": "hair", "hair": "#rrggbb", "skin": "#rrggbb", "barba": "#rrggbb" (opcional)}}],
+  "textos": [{"texto": "...", "x": 540, "y": 250-560, "tamanho": 36-76, "estilo": "grande"|"etiqueta", "cor": "#2e6fb7" ou "#c8402f" (só para "grande"), "aparece": <segundos dentro da cena>}],
+  "referencia": "Livro capítulo:versículo" (opcional),
+  "icones": [{"tipo": "cruz"|"coracao"|"estrela"|"sol"|"coroa", "x": 0-1080, "y": 500-900, "tamanho": 100-160, "aparece": 0.3}],
+  "zoom": [1, 1.05], "flash": false }]}
+O sistema desenha a LEGENDA sozinho a partir da narração; não escreva legendas. Em "destaques" liste de 6 a 16 palavras da narração (maiúsculas, sem pontuação): nomes, lugares e a palavra central de cada virada.
+Regras de conteúdo:
+- Fidelidade acima de tudo: use SOMENTE versículos e referências que já aparecem no roteiro. Nunca invente nem complete um versículo; se o roteiro não cita capítulo e versículo, omita "referencia".
+- Sem violência explícita nem sangue; mostre o contexto (lugar, expressão, sinal) e não o ato. Personagens com túnicas em cores terrosas, sem rostos de realismo.
+Regras de layout (tela vertical 1080x1920):
+- Faixa ("grande") e selo ("etiqueta") ficam em y 250 a 560, acima dos personagens. A referência fica em y 1352 e a legenda em y 1480 a 1700: não coloque nada nessas faixas.
+- A primeira cena tem um selo de categoria (ex.: "HISTÓRIA · GÊNESIS") e a faixa com o tema. Nas demais, uma faixa curta (até 22 caracteres) quando muda o assunto.
+- Toda cena precisa de uma ilustração: pelo menos 1 personagem. Só a cena "pergaminho" pode ficar sem personagem, e então use um ícone grande (tamanho 220 a 300, y por volta de 760).
+- Troque de cena a cada 3 a 5 segundos, na virada de cada frase. Entre 8 e 16 cenas. Alterne cenários: colinas (dia e campo), deserto, noite (promessa, mistério), templo (lugares sagrados), pergaminho (leitura e versículo).
+- No máximo 3 personagens por cena; com 2 ou 3, espalhe o x e use altura 650 a 760. Cada personagem mantém a mesma roupa em todo o vídeo.`;
+
+const esquemaDo = (estilo: string) => (estilo === "volta-por-cima" ? ESQUEMA_VPC : estilo === "biblia-animada" ? ESQUEMA_BIBLIA : ESQUEMA_CENAS);
+
 export const pedidoCenas = (roteiro: string, palavras: { w: string; s: number }[], duracao: number, estilo = "classico") =>
-  `${estilo === "volta-por-cima" ? ESQUEMA_VPC : ESQUEMA_CENAS}
+  `${esquemaDo(estilo)}
 
 Duração total: ${duracao.toFixed(1)} segundos.
 Narração (linha por linha):
@@ -71,7 +95,7 @@ Tempo em que cada palavra é falada (segundos):
 ${palavras.map((p) => `${p.s.toFixed(2)} ${p.w}`).join(" | ")}`;
 
 export const pedidoAjuste = (cenasJson: string, instrucao: string, duracao: number, estilo = "classico") =>
-  `${estilo === "volta-por-cima" ? ESQUEMA_VPC : ESQUEMA_CENAS}
+  `${esquemaDo(estilo)}
 
 Aplique este ajuste ao vídeo e devolva o JSON COMPLETO atualizado (mantenha tudo que não foi pedido para mudar).
 Duração total: ${duracao.toFixed(1)} segundos.

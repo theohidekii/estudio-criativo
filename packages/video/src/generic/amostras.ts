@@ -51,3 +51,25 @@ export const AMOSTRA_CLASSICO: Cenas = {
     { inicio: 3, cenario: { tipo: "escuro" }, personagens: [{ x: 540, y: 1500, altura: 1000, expr: "stern", roupa: { jacket: "#c6718f", pants: "#3b4a6b" } }], textos: [{ texto: "1998", x: 540, y: 500, tamanho: 80, estilo: "etiqueta" }] },
   ],
 };
+
+const NOE = { jacket: "#c0583a", pants: "#c0583a", boots: "#8a6a3a", hat: "hair" as const, hair: "#9a9a9a", skin: "#d9a577", tunica: "#c0583a", barba: "#9a9a9a" };
+const ESPOSA = { jacket: "#3f7fb5", pants: "#3f7fb5", boots: "#8a6a3a", hat: "hair" as const, hair: "#5a3a22", skin: "#e0b088", tunica: "#3f7fb5" };
+const falaB = "Deus pediu que Noé construísse uma arca. Noé obedeceu, mesmo sem ver nuvem alguma. Quando a chuva chegou, a família estava segura. Depois veio o arco-íris, um sinal de promessa.";
+const palavrasB = falaB.split(" ").map((w, i) => ({ w, s: i * 0.5, e: i * 0.5 + 0.44 }));
+
+export const AMOSTRA_BIBLIA: Cenas = {
+  duracao: 14,
+  estilo: "biblia-animada",
+  destaques: ["DEUS", "NOÉ", "ARCA", "CHUVA", "PROMESSA", "ARCO-ÍRIS"],
+  legendas: montarLegendas(palavrasB, 3),
+  cenas: [
+    { inicio: 0, cenario: { tipo: "colinas" }, personagens: [{ x: 540, y: 1480, altura: 880, expr: "smile", roupa: NOE }],
+      textos: [{ texto: "História · Gênesis", x: 540, y: 270, tamanho: 36, estilo: "etiqueta" }, { texto: "Noé e a arca", x: 540, y: 460, tamanho: 76, estilo: "grande" }], referencia: "Gênesis 6:14", icones: [{ tipo: "sol", x: 880, y: 640, tamanho: 140 }] },
+    { inicio: 3.6, cenario: { tipo: "deserto" }, personagens: [{ x: 540, y: 1480, altura: 880, expr: "neutral", roupa: NOE }],
+      textos: [{ texto: "Obedecer sem ver", x: 540, y: 460, tamanho: 70, estilo: "grande", cor: "#c8402f" }], icones: [] },
+    { inicio: 7, cenario: { tipo: "noite" }, personagens: [{ x: 340, y: 1480, altura: 800, expr: "relief", roupa: NOE }, { x: 760, y: 1480, altura: 800, expr: "smile", flip: true, roupa: ESPOSA }],
+      textos: [{ texto: "A chuva chega", x: 540, y: 460, tamanho: 76, estilo: "grande" }], icones: [{ tipo: "estrela", x: 180, y: 700, tamanho: 110 }] },
+    { inicio: 10.4, cenario: { tipo: "pergaminho" }, personagens: [{ x: 540, y: 1480, altura: 820, expr: "smile", roupa: ESPOSA }],
+      textos: [{ texto: "Um sinal de promessa", x: 540, y: 460, tamanho: 70, estilo: "grande", cor: "#c8402f" }], referencia: "Gênesis 9:13", icones: [{ tipo: "coracao", x: 880, y: 760, tamanho: 130 }] },
+  ],
+};

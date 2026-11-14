@@ -1,17 +1,19 @@
 // Formato de dados das cenas. Sem imports do Remotion para poder ser usado também no servidor (validação).
 export const EXPRESSOES = ["neutral", "stern", "grin", "laugh", "whistle", "nervous", "shock", "relief", "dazed", "pained", "smile", "smile_closed"] as const;
-export const CENARIOS = ["sala", "parque", "escuro", "cor", "chapado", "rua", "quarto"] as const;
-export const ESTILOS = ["classico", "volta-por-cima"] as const;
+export const CENARIOS = ["sala", "parque", "escuro", "cor", "chapado", "rua", "quarto", "deserto", "colinas", "noite", "templo", "pergaminho"] as const;
+export const ICONES = ["cruz", "coracao", "estrela", "sol", "coroa"] as const;
+export const ESTILOS = ["classico", "volta-por-cima", "biblia-animada"] as const;
 export const CORES_BARRA = ["vermelho", "verde", "azul", "amarelo"] as const;
 
 export type Estilo = (typeof ESTILOS)[number];
-export type Roupa = { jacket: string; pants: string; boots?: string; hat?: "hair" | "cap"; hair?: string; cap?: string; skin?: string; glasses?: boolean; build?: "adult" | "stout" | "kid" };
+export type Roupa = { jacket: string; pants: string; boots?: string; hat?: "hair" | "cap"; hair?: string; cap?: string; skin?: string; glasses?: boolean; build?: "adult" | "stout" | "kid"; tunica?: string; barba?: string };
 export type Personagem = { x: number; y: number; altura: number; expr: (typeof EXPRESSOES)[number]; flip?: boolean; seed?: number; modo?: "stand" | "sit"; roupa: Roupa };
 export type Texto = { texto: string; x: number; y: number; tamanho: number; cor?: string; estilo: "etiqueta" | "grande"; aparece?: number };
 export type Adesivo = { texto: string; x: number; y: number; cor?: string; rotacao?: number; aparece?: number };
 export type Barra = { nome: string; valor: number; texto?: string; cor: (typeof CORES_BARRA)[number] };
 export type Hud = { titulo: string; numero: number; barras: Barra[] };
 export type Celular = { x: number; y: number; largura: number; titulo: string; tipo: "chat" | "pix"; linhas: { de: "eu" | "ele"; texto: string }[]; aparece?: number };
+export type Icone = { tipo: (typeof ICONES)[number]; x: number; y: number; tamanho: number; aparece?: number };
 export type Legenda = { inicio: number; fim: number; texto: string };
 export type Cena = {
   inicio: number; // segundos desde o começo do vídeo
@@ -20,6 +22,8 @@ export type Cena = {
   textos: Texto[];
   adesivos?: Adesivo[];
   celular?: Celular;
+  referencia?: string; // citação bíblica, ex.: "Gênesis 6:14"
+  icones?: Icone[];
   hud?: Hud; // se omitido, vale o HUD da cena anterior
   zoom?: [number, number];
   flash?: boolean;
@@ -75,6 +79,7 @@ export function validarCenas(bruto: unknown, duracao: number): Cenas {
           jacket: cor(r.jacket, `${p} roupa.jacket`), pants: cor(r.pants, `${p} roupa.pants`), boots: r.boots ? cor(r.boots, "boots") : "#1c1a19",
           hat: r.hat === "cap" ? "cap" : "hair", hair: r.hair ? cor(r.hair, "hair") : "#3a2a20", cap: r.cap ? cor(r.cap, "cap") : undefined,
           skin: r.skin ? cor(r.skin, "skin") : "#f5c9a0", glasses: !!r.glasses, build: ["stout", "kid"].includes(r.build) ? r.build : "adult",
+          tunica: r.tunica ? cor(r.tunica, `${p} roupa.tunica`) : undefined, barba: r.barba ? cor(r.barba, `${p} roupa.barba`) : undefined,
         },
       };
     });
@@ -86,6 +91,11 @@ export function validarCenas(bruto: unknown, duracao: number): Cenas {
       texto: txt(a?.texto, 24, `${p} adesivo ${j + 1}`), x: num(a.x, 0, 1080, `${p} adesivo x`), y: num(a.y, 0, 1920, `${p} adesivo y`),
       cor: a.cor ? cor(a.cor, "adesivo cor") : "#e0334a", rotacao: Number.isFinite(a.rotacao) ? Math.max(-20, Math.min(20, a.rotacao)) : -6, aparece: Number.isFinite(a.aparece) ? Math.max(0, a.aparece) : 0,
     }));
+    const icones: Icone[] = (c.icones ?? []).slice(0, 4).map((k: any, j: number) => {
+      if (!ICONES.includes(k?.tipo)) throw new Error(`${p} icone ${j + 1}: tipo deve ser ${ICONES.join(", ")}`);
+      return { tipo: k.tipo, x: num(k.x, 0, 1080, `${p} icone x`), y: num(k.y, 200, 1800, `${p} icone y`), tamanho: num(k.tamanho, 60, 320, `${p} icone tamanho`), aparece: Number.isFinite(k.aparece) ? Math.max(0, k.aparece) : 0 };
+    });
+    const referencia = typeof c.referencia === "string" && c.referencia.trim() ? txt(c.referencia, 40, `${p} referencia`) : undefined;
     let celular: Celular | undefined;
     if (c.celular) {
       const k = c.celular;
@@ -113,7 +123,7 @@ export function validarCenas(bruto: unknown, duracao: number): Cenas {
     return {
       inicio: num(c.inicio, 0, duracao, `${p} inicio`),
       cenario: { tipo: c.cenario.tipo, cor: c.cenario.cor ? cor(c.cenario.cor, "cenario.cor") : undefined, piso: c.cenario.piso ? cor(c.cenario.piso, "cenario.piso") : undefined, raios: !!c.cenario.raios },
-      personagens, textos, adesivos, celular, hud,
+      personagens, textos, adesivos, celular, hud, icones, referencia,
       zoom: Array.isArray(c.zoom) && c.zoom.length === 2 ? [num(c.zoom[0], 0.8, 1.6, "zoom"), num(c.zoom[1], 0.8, 1.6, "zoom")] : undefined,
       flash: !!c.flash,
     };

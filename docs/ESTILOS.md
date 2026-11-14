@@ -98,3 +98,16 @@ Pacote visual em `packages/video/src/generic/vpc.tsx`; dados em `tipos.ts` (form
 - **IA:** prompt próprio por estilo; o servidor decide o estilo do vídeo (a IA não troca) e valida o JSON.
 - Testado de ponta a ponta com ElevenLabs e Claude reais (vídeo de 8 s com narração, 7 cenas e 10 legendas).
 - Limites: personagens ainda são os do motor atual (cabeça menor que nas referências); sem efeitos sonoros nem música; HUD com poucas barras fica vazio.
+
+---
+
+# Estilo implementado: Bíblia Animada
+
+Pacote visual em `packages/video/src/generic/biblia.tsx`; exemplo (Noé e a arca, em palavras próprias) em `amostras.ts`.
+
+- **Cenários:** colinas (dia), deserto, noite estrelada, templo e pergaminho, em vetor suave e sem contorno pesado.
+- **Texto:** faixa em fita com o tema, selo de categoria no topo, **referência com livro, capítulo e versículo** e legenda branca grande na parte de baixo (palavras em `destaques` em dourado ou verde).
+- **Ícones:** cruz, coração, estrela, sol e coroa. **Personagens** com túnica e barba opcional (o motor desenha a túnica como vestido).
+- **IA:** prompt com regra de fidelidade: só usa referências que já estão no roteiro, nunca inventa ou completa versículos; sem violência explícita.
+- Testado com Claude real (roteiro de Davi e Golias): JSON válido, 13 cenas e somente as 2 referências do roteiro; fluxo pelo sistema confirmado (estilo, legendas automáticas, editor com pré-visualização).
+- Limites: o conteúdo religioso precisa de revisão humana antes de publicar; personagens ainda do motor atual; sem trilha nem efeitos sonoros; não testado com narração e render completos neste estilo.

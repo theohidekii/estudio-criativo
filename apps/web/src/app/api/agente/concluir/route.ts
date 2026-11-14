@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { mensagens, notificacoes, roteiros, tarefas, versoesVideo } from "@estudio/db";
-import { montarLegendas, validarCenas } from "@estudio/video/src/generic/tipos";
+import { ESTILOS, montarLegendas, validarCenas } from "@estudio/video/src/generic/tipos";
 import { concluir, falhar } from "@estudio/db/src/fila";
 import { agenteDaRequisicao } from "@/lib/agente";
 import { db } from "@/lib/db";
@@ -23,9 +23,9 @@ export async function POST(req: Request) {
       const cenas = validarCenas(JSON.parse(limpo.slice(limpo.indexOf("{"), limpo.lastIndexOf("}") + 1)), duracao ?? 60);
       // O estilo é decidido pelo vídeo, não pela IA; no estilo de legenda curta o sistema monta as legendas pelos tempos da narração.
       const ver = d.select().from(versoesVideo).where(eq(versoesVideo.id, versaoId)).get();
-      const estilo = payloadEstilo === "volta-por-cima" ? "volta-por-cima" : "classico";
+      const estilo = (ESTILOS as readonly string[]).includes(payloadEstilo ?? "") ? (payloadEstilo as (typeof ESTILOS)[number]) : "classico";
       cenas.estilo = estilo;
-      if (estilo === "volta-por-cima" && ver) cenas.legendas = montarLegendas(JSON.parse(ver.palavras));
+      if (estilo !== "classico" && ver) cenas.legendas = montarLegendas(JSON.parse(ver.palavras), 3);
       concluir(d, id);
       d.update(versoesVideo).set({ cenas: JSON.stringify(cenas), status: "cenas_prontas", erro: null }).where(eq(versoesVideo.id, versaoId)).run();
     } catch (e) {
