@@ -11,3 +11,13 @@
 2. Copie `.env.example` para `apps/web/.env.local` e troque `SESSION_SECRET`.
 3. `npm run dev` → http://localhost:3000 (o primeiro login cria o administrador).
 4. Studio do Remotion: `npm run video:studio`.
+
+# Fase 1 — etapa 1: agente local e chat de ideias
+
+- Tabelas novas: `agentes` (token só como hash), `conversas`, `mensagens`; `tarefas` ganhou `usuario_id`.
+- API do agente (`/api/agente/pegar` e `/concluir`, autenticada por token Bearer).
+- `apps/agente`: roda `claude -p --model haiku --tools ""` na máquina da pessoa (sem ferramentas, só texto).
+- Páginas: **Agente local** (gera token, mostra online/offline) e **Ideias** (chat por perfil + botão "Gerar ideias pelo nicho").
+- Testado de ponta a ponta com um comando falso no lugar do Claude (o `claude` não está instalado no PATH desta máquina).
+
+Uso: em `/agentes` gere o token e rode `npm run agente -- --servidor http://localhost:3000 --token <token>`.

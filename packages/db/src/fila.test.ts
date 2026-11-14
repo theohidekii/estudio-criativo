@@ -22,3 +22,12 @@ test("fila: depois de 3 tentativas fica como falhou", () => {
   for (let i = 0; i < 3; i++) { pegarProxima(db); falhar(db, t.id, "e"); }
   assert.equal(pegarProxima(db), null);
 });
+
+test("fila: filtra por usuário e prefixo do tipo", () => {
+  const db = migrarBanco(abrirBanco(":memory:"));
+  enfileirar(db, "ia.chat", {}, new Date(), 1);
+  enfileirar(db, "render", {}, new Date(), 1);
+  assert.equal(pegarProxima(db, new Date(), { usuarioId: 2, tipoComecaCom: "ia." }), null);
+  assert.equal(pegarProxima(db, new Date(), { usuarioId: 1, tipoComecaCom: "ia." })?.tipo, "ia.chat");
+  assert.equal(pegarProxima(db, new Date(), { usuarioId: 1, tipoComecaCom: "ia." }), null);
+});

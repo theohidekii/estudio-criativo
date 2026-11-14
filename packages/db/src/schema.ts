@@ -65,6 +65,7 @@ export const fontes = sqliteTable("fontes", {
 export const tarefas = sqliteTable("tarefas", {
   id: id(),
   tipo: text("tipo").notNull(),
+  usuarioId: integer("usuario_id"),
   payload: text("payload").notNull().default("{}"),
   status: text("status", { enum: ["pendente", "executando", "concluida", "falhou"] })
     .notNull()
@@ -80,5 +81,32 @@ export const notificacoes = sqliteTable("notificacoes", {
   titulo: text("titulo").notNull(),
   mensagem: text("mensagem").notNull().default(""),
   lida: integer("lida", { mode: "boolean" }).notNull().default(false),
+  criadoEm: criadoEm(),
+});
+
+/** Agente local de cada membro. O token só é guardado como hash. */
+export const agentes = sqliteTable("agentes", {
+  id: id(),
+  usuarioId: integer("usuario_id").notNull().references(() => usuarios.id, { onDelete: "cascade" }),
+  nome: text("nome").notNull(),
+  tokenHash: text("token_hash").notNull().unique(),
+  ultimoContato: integer("ultimo_contato", { mode: "timestamp" }),
+  criadoEm: criadoEm(),
+});
+
+export const conversas = sqliteTable("conversas", {
+  id: id(),
+  usuarioId: integer("usuario_id").notNull().references(() => usuarios.id, { onDelete: "cascade" }),
+  perfilId: integer("perfil_id").references(() => perfis.id, { onDelete: "set null" }),
+  titulo: text("titulo").notNull().default("Nova conversa"),
+  criadoEm: criadoEm(),
+});
+
+export const mensagens = sqliteTable("mensagens", {
+  id: id(),
+  conversaId: integer("conversa_id").notNull().references(() => conversas.id, { onDelete: "cascade" }),
+  papel: text("papel", { enum: ["usuario", "ia"] }).notNull(),
+  texto: text("texto").notNull().default(""),
+  status: text("status", { enum: ["pendente", "pronta", "erro"] }).notNull().default("pronta"),
   criadoEm: criadoEm(),
 });
