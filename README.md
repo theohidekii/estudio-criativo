@@ -43,19 +43,9 @@ O fluxo de produção vai da ideia até o post publicado:
 | **Estilos** | Galeria dos estilos visuais: Clássico, Volta por Cima, Bíblia Animada, Mundo Oculto, Matrixxtz 2D e Natan Madeira 3D. |
 | **Contas** | Conexão das contas das redes (OAuth). |
 
-### Exemplos de vídeos gerados
+Exemplo de quadro gerado pelo sistema (vídeo Milgram, parte 1):
 
-Cada imagem abaixo é um quadro (aos 10 s) de um vídeo renderizado pelo próprio sistema. Estão em `docs/imagens/`.
-
-| Vídeo | Quadro |
-|---|---|
-| Milgram, parte 1 (v3) | ![Milgram parte 1](docs/imagens/exemplo-MilgramP1-v3.jpg) |
-| Milgram, parte 2 (v1) | ![Milgram parte 2](docs/imagens/exemplo-MilgramP2-v1.jpg) |
-| Terman e Alvarez, parte 1 | ![Terman](docs/imagens/exemplo-TermanP1-v1.jpg) |
-| O tempo passa rápido | ![Tempo](docs/imagens/exemplo-TempoP1-v1.jpg) |
-| Marshall e a bactéria | ![Marshall](docs/imagens/exemplo-MarshallP1-v1.jpg) |
-| Maníaco do Parque | ![Maníaco](docs/imagens/exemplo-ManiacoP1-v1.jpg) |
-| Daniel Markel (v1) | ![Daniel](docs/imagens/exemplo-DanielP1-v1.jpg) |
+![Quadro de exemplo: Milgram, parte 1](docs/imagens/exemplo-MilgramP1-v3.jpg)
 
 ### Estilos de vídeo
 
