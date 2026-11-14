@@ -1,11 +1,11 @@
 "use client";
 import { Player } from "@remotion/player";
 import { Generico } from "@estudio/video/src/generic/Generico";
-import { AMOSTRA_BIBLIA, AMOSTRA_CLASSICO, AMOSTRA_MUNDO, AMOSTRA_VPC } from "@estudio/video/src/generic/amostras";
+import { AMOSTRA_BIBLIA, AMOSTRA_CINEMA, AMOSTRA_CLASSICO, AMOSTRA_MUNDO, AMOSTRA_VPC } from "@estudio/video/src/generic/amostras";
 
 /** Pré-visualização animada de um estilo, com as cenas de exemplo. */
 export default function Previa({ estilo }: { estilo: string }) {
-  const cenas = estilo === "volta-por-cima" ? AMOSTRA_VPC : estilo === "biblia-animada" ? AMOSTRA_BIBLIA : estilo === "mundo-oculto" ? AMOSTRA_MUNDO : AMOSTRA_CLASSICO;
+  const cenas = estilo === "volta-por-cima" ? AMOSTRA_VPC : estilo === "biblia-animada" ? AMOSTRA_BIBLIA : estilo === "mundo-oculto" ? AMOSTRA_MUNDO : estilo === "matrixxtz-2d" ? AMOSTRA_CINEMA : AMOSTRA_CLASSICO;
   return (
     <Player
       component={Generico}

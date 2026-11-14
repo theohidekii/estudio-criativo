@@ -1,8 +1,9 @@
 // Formato de dados das cenas. Sem imports do Remotion para poder ser usado também no servidor (validação).
 export const EXPRESSOES = ["neutral", "stern", "grin", "laugh", "whistle", "nervous", "shock", "relief", "dazed", "pained", "smile", "smile_closed"] as const;
-export const CENARIOS = ["sala", "parque", "escuro", "cor", "chapado", "rua", "quarto", "deserto", "colinas", "noite", "templo", "pergaminho"] as const;
+export const CENARIOS = ["sala", "parque", "escuro", "cor", "chapado", "rua", "quarto", "deserto", "colinas", "noite", "templo", "pergaminho", "cozinha"] as const;
+export const OBJETOS = ["ovo", "lata", "celular", "controle", "despertador", "nota", "copo", "livro"] as const;
 export const ICONES = ["cruz", "coracao", "estrela", "sol", "coroa", "ovni", "olho", "cerebro", "lampada", "relogio", "seta", "interrogacao", "circulo"] as const;
-export const ESTILOS = ["classico", "volta-por-cima", "biblia-animada", "mundo-oculto"] as const;
+export const ESTILOS = ["classico", "volta-por-cima", "biblia-animada", "mundo-oculto", "matrixxtz-2d"] as const;
 export const CORES_BARRA = ["vermelho", "verde", "azul", "amarelo"] as const;
 
 export type Estilo = (typeof ESTILOS)[number];
@@ -14,6 +15,7 @@ export type Barra = { nome: string; valor: number; texto?: string; cor: (typeof 
 export type Hud = { titulo: string; numero: number; barras: Barra[] };
 export type Celular = { x: number; y: number; largura: number; titulo: string; tipo: "chat" | "pix"; linhas: { de: "eu" | "ele"; texto: string }[]; aparece?: number };
 export type Icone = { tipo: (typeof ICONES)[number]; x: number; y: number; tamanho: number; aparece?: number; destaque?: boolean };
+export type Objeto = { tipo: (typeof OBJETOS)[number]; x: number; y: number; tamanho: number; rotacao?: number; flutua?: boolean; aparece?: number };
 export type Legenda = { inicio: number; fim: number; texto: string };
 export type Cena = {
   inicio: number; // segundos desde o começo do vídeo
@@ -23,6 +25,9 @@ export type Cena = {
   adesivos?: Adesivo[];
   celular?: Celular;
   referencia?: string; // citação bíblica, ex.: "Gênesis 6:14"
+  objetos?: Objeto[]; // objetos de cena (ovo, lata, celular...), com opção de flutuar
+  desfoque?: number; // desfoque do fundo em px (profundidade de campo)
+  origem?: [number, number]; // ponto do zoom em % da tela (close-up)
   icones?: Icone[];
   hud?: Hud; // se omitido, vale o HUD da cena anterior
   zoom?: [number, number];
@@ -95,6 +100,10 @@ export function validarCenas(bruto: unknown, duracao: number): Cenas {
       if (!ICONES.includes(k?.tipo)) throw new Error(`${p} icone ${j + 1}: tipo deve ser ${ICONES.join(", ")}`);
       return { tipo: k.tipo, x: num(k.x, 0, 1080, `${p} icone x`), y: num(k.y, 200, 1800, `${p} icone y`), tamanho: Math.max(60, Math.min(450, num(k.tamanho, 0, 5000, `${p} icone tamanho`))), aparece: Number.isFinite(k.aparece) ? Math.max(0, k.aparece) : 0, destaque: !!k.destaque };
     });
+    const objetos: Objeto[] = (c.objetos ?? []).slice(0, 6).map((o: any, j: number) => {
+      if (!OBJETOS.includes(o?.tipo)) throw new Error(`${p} objeto ${j + 1}: tipo deve ser ${OBJETOS.join(", ")}`);
+      return { tipo: o.tipo, x: num(o.x, -100, 1180, `${p} objeto x`), y: num(o.y, 0, 2000, `${p} objeto y`), tamanho: Math.max(60, Math.min(700, num(o.tamanho, 0, 5000, `${p} objeto tamanho`))), rotacao: Number.isFinite(o.rotacao) ? Math.max(-180, Math.min(180, o.rotacao)) : 0, flutua: !!o.flutua, aparece: Number.isFinite(o.aparece) ? Math.max(0, o.aparece) : 0 };
+    });
     const referencia = typeof c.referencia === "string" && c.referencia.trim() ? txt(c.referencia, 40, `${p} referencia`) : undefined;
     let celular: Celular | undefined;
     if (c.celular) {
@@ -123,7 +132,9 @@ export function validarCenas(bruto: unknown, duracao: number): Cenas {
     return {
       inicio: num(c.inicio, 0, duracao, `${p} inicio`),
       cenario: { tipo: c.cenario.tipo, cor: c.cenario.cor ? cor(c.cenario.cor, "cenario.cor") : undefined, piso: c.cenario.piso ? cor(c.cenario.piso, "cenario.piso") : undefined, raios: !!c.cenario.raios },
-      personagens, textos, adesivos, celular, hud, icones, referencia,
+      personagens, textos, adesivos, celular, hud, icones, referencia, objetos,
+      desfoque: Number.isFinite(c.desfoque) ? Math.max(0, Math.min(14, c.desfoque)) : undefined,
+      origem: Array.isArray(c.origem) && c.origem.length === 2 ? [Math.max(0, Math.min(100, Number(c.origem[0]) || 50)), Math.max(0, Math.min(100, Number(c.origem[1]) || 50))] : undefined,
       zoom: Array.isArray(c.zoom) && c.zoom.length === 2 ? [num(c.zoom[0], 0.8, 1.6, "zoom"), num(c.zoom[1], 0.8, 1.6, "zoom")] : undefined,
       flash: !!c.flash,
     };
@@ -141,6 +152,7 @@ export function validarCenas(bruto: unknown, duracao: number): Cenas {
 export function legendasDoEstilo(estilo: Estilo, palavras: { w: string; s: number; e: number }[]): Legenda[] | undefined {
   if (estilo === "classico") return undefined;
   if (estilo === "mundo-oculto") return montarLegendas(palavras, 6, 34, false);
+  if (estilo === "matrixxtz-2d") return montarLegendas(palavras, 4, 24);
   return montarLegendas(palavras, 3);
 }
 

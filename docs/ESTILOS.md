@@ -125,3 +125,17 @@ Pacote visual em `packages/video/src/generic/mundo.tsx`; exemplo (polvo e seus t
 - **Render:** 12 s de vídeo em 53 s (filtros pesados, mas viável).
 - Bugs encontrados e corrigidos neste teste: tamanho de ícone rejeitado pelo validador apesar de o prompt permitir (agora é limitado) e resposta da IA com texto depois do JSON (novo `extrairJson`, que acha o fim exato do objeto).
 - Limites: personagens são os do motor atual (virados contorno); a letra depende de baixar a fonte do Google no momento do render; sem trilha nem efeitos sonoros; o estilo não foi testado com narração real e render completo pelo sistema, só com cenas reais da IA e render da amostra.
+
+---
+
+# Estilo implementado: Matrixxtz 2D
+
+Pacote visual em `packages/video/src/generic/matrixxtz.tsx`; exemplo (telecinese ao acordar, em palavras próprias) em `amostras.ts`.
+
+- **Cinema em 2D:** fundo ilustrado (sala, quarto, cozinha, rua, parque, noite) em tons quentes e dessaturados, **desfocado** para criar profundidade de campo (`desfoque` por cena), com feixe de luz da janela, **grão de filme animado**, vinheta e correção de cor.
+- **Câmera:** push-in lento e **close** com `origem` do zoom (rosto, mãos, objeto).
+- **Objetos** (ovo, lata, celular, controle, despertador, nota, copo, livro) com sombra suave, que podem **flutuar** e girar (efeito de telecinese).
+- **Legenda:** branca, condensada (Roboto Condensed, via Google Fonts), com sombra fina no terço inferior; palavras de `destaques` em ocre ou vermelho. 2 a 4 palavras por vez.
+- **IA:** prompt com a gramática do estilo (cenas de 1,8 a 3 s, gancho hipotético, closes alternados com planos abertos, cores quentes), sem personagens sentados e com fidelidade ao roteiro.
+- Testado de ponta a ponta com Claude real: JSON válido (16 cenas, 9 closes, 5 objetos flutuando) e render pelo sistema (MP4 de 10,3 s, 1080x1920). Narração simulada nesse teste.
+- Limites: o contorno escuro dos personagens do motor é mais pesado que no canal de referência; "sentado" não tem sofá, então foi desaconselhado no prompt; a fonte vem do Google no momento do render (precisa de internet); sem trilha nem efeitos sonoros; o áudio não foi ouvido.

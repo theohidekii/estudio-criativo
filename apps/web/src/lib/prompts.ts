@@ -101,7 +101,27 @@ Regras de layout (tela vertical 1080x1920):
 - Troque de cena a cada 2 a 4 segundos, na virada de cada frase. Entre 8 e 20 cenas. Até 4 ícones por cena, escalonando "aparece" (0, 0.6, 1.2...) para que se desenhem em sequência; use "circulo" em vermelho para chamar atenção a algo e "seta" para mostrar sentido ou causa.
 - Anotações ("etiqueta"): no máximo 3 palavras, perto do desenho a que se referem. Use a cor vermelha só para o dado mais importante da cena.`;
 
-const esquemaDo = (estilo: string) => (estilo === "volta-por-cima" ? ESQUEMA_VPC : estilo === "biblia-animada" ? ESQUEMA_BIBLIA : estilo === "mundo-oculto" ? ESQUEMA_MUNDO : ESQUEMA_CENAS);
+const ESQUEMA_CINEMA = `Responda SOMENTE com JSON válido (sem markdown, sem comentários) no estilo "Matrixxtz 2D": humor e ciência do dia a dia, 2D quente e dessaturado com cara de cinema, ritmo rápido.
+{"duracao": <segundos>, "estilo": "matrixxtz-2d", "destaques": ["PALAVRA", ...],
+ "cenas": [{
+  "inicio": <segundos, a primeira é 0>,
+  "cenario": {"tipo": "sala"|"quarto"|"cozinha"|"rua"|"parque"|"noite"},
+  "desfoque": 2-6,
+  "personagens": [{"x": 0-1080, "y": 1500-1600, "altura": 800-1050, "expr": "neutral|stern|smile|smile_closed|shock|nervous|relief|dazed|pained|grin|laugh", "flip": false, "seed": 1,
+     "roupa": {"jacket": "#rrggbb", "pants": "#rrggbb", "hat": "hair", "hair": "#rrggbb", "skin": "#rrggbb", "barba": "#rrggbb" (opcional), "glasses": false}}],
+  "objetos": [{"tipo": "ovo"|"lata"|"celular"|"controle"|"despertador"|"nota"|"copo"|"livro", "x": 0-1080, "y": 500-1400, "tamanho": 120-320, "rotacao": -45..45, "flutua": true|false, "aparece": <segundos dentro da cena>}],
+  "zoom": [1, 1.1], "origem": [50, 30] (ponto do zoom em %), "flash": false }]}
+O sistema escreve sozinho a LEGENDA branca no terço inferior a partir da narração; não escreva legendas. Em "destaques" liste de 6 a 16 palavras da narração (maiúsculas, sem pontuação): a palavra-chave de cada frase e as viradas de humor.
+Linguagem do estilo:
+- Cenas curtas, de 1,8 a 3 s, com um corte a cada frase ou virada. Entre 12 e 24 cenas. Alterne planos: plano aberto (zoom [1, 1.08]), close no rosto (zoom [1.15, 1.35] com "origem" [50, 25]) e close em mãos e objetos (zoom [1.2, 1.4] com "origem" no objeto).
+- Ganchos hipotéticos funcionam bem ("E se tu...?"). Objetos com "flutua": true dão o efeito de telecinese ou de coisas fora do lugar; use quando a narração falar de algo voando, caindo ou fora de controle.
+- Cores de roupa quentes e dessaturadas (terrosos, creme, verde-musgo, azul-acinzentado), nunca neon. Cada personagem mantém a mesma roupa no vídeo todo.
+Regras de layout (tela vertical 1080x1920):
+- A legenda ocupa y 1380 a 1650: evite objetos importantes nessa faixa. Rostos ficam em y 650 a 1000 (aproximadamente), então objetos não devem cobri-los.
+- No máximo 2 personagens por cena; com 2, use x 330 e 750 e altura 800 a 880. Não use "modo": "sit". Cada cena precisa de pelo menos 1 personagem ou 1 objeto grande (close).
+- Humor leve e acolhedor. Mantenha-se fiel ao roteiro: não invente fatos, números ou nomes.`;
+
+const esquemaDo = (estilo: string) => (estilo === "volta-por-cima" ? ESQUEMA_VPC : estilo === "biblia-animada" ? ESQUEMA_BIBLIA : estilo === "mundo-oculto" ? ESQUEMA_MUNDO : estilo === "matrixxtz-2d" ? ESQUEMA_CINEMA : ESQUEMA_CENAS);
 
 export const pedidoCenas = (roteiro: string, palavras: { w: string; s: number }[], duracao: number, estilo = "classico") =>
   `${esquemaDo(estilo)}

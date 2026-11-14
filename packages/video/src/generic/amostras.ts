@@ -93,3 +93,23 @@ export const AMOSTRA_MUNDO: Cenas = {
       textos: [{ texto: "Cu", x: 540, y: 1560, tamanho: 110, estilo: "grande", cor: "#ff4d4d" }], icones: [{ tipo: "olho", x: 540, y: 1000, tamanho: 360 }, { tipo: "circulo", x: 540, y: 1000, tamanho: 470, aparece: 0.8 }] },
   ],
 };
+
+const RAFA = { jacket: "#e9e2cf", pants: "#5d7a52", boots: "#4a3a2a", hat: "hair" as const, hair: "#2e2018", skin: "#c98e5d", barba: "#2e2018" };
+const MARI = { jacket: "#b5533c", pants: "#3f4a5e", boots: "#3a2a22", hat: "hair" as const, hair: "#4a2e1c", skin: "#d9a577" };
+const falaC = "E se tu acordasse com telecinese? Primeiro, o controle voa. Depois, a lata. Aí tu pensa: calma, eu preciso de um café. E o café vem sozinho.";
+const palavrasC = falaC.split(" ").map((w, i) => ({ w, s: i * 0.42, e: i * 0.42 + 0.38 }));
+
+export const AMOSTRA_CINEMA: Cenas = {
+  duracao: 11,
+  estilo: "matrixxtz-2d",
+  destaques: ["TELECINESE", "CONTROLE", "LATA", "CAFÉ"],
+  legendas: montarLegendas(palavrasC, 4, 24),
+  cenas: [
+    { inicio: 0, cenario: { tipo: "sala" }, desfoque: 3, personagens: [{ x: 600, y: 1520, altura: 880, expr: "dazed", modo: "sit", roupa: RAFA }],
+      textos: [], objetos: [{ tipo: "controle", x: 250, y: 780, tamanho: 150, rotacao: 30, flutua: true }, { tipo: "lata", x: 880, y: 640, tamanho: 140, flutua: true }, { tipo: "ovo", x: 430, y: 560, tamanho: 110, flutua: true, aparece: 0.6 }], zoom: [1, 1.08] },
+    { inicio: 3.6, cenario: { tipo: "cozinha" }, desfoque: 5, personagens: [{ x: 540, y: 1560, altura: 1000, expr: "shock", roupa: MARI }],
+      textos: [], objetos: [{ tipo: "copo", x: 800, y: 1040, tamanho: 220, flutua: true }], zoom: [1.05, 1.22], origem: [50, 28] },
+    { inicio: 7.2, cenario: { tipo: "sala" }, desfoque: 4, personagens: [{ x: 540, y: 1560, altura: 960, expr: "smile", roupa: RAFA }],
+      textos: [], objetos: [{ tipo: "despertador", x: 840, y: 860, tamanho: 180, flutua: true }, { tipo: "livro", x: 220, y: 900, tamanho: 170, rotacao: -20, flutua: true }], zoom: [1, 1.1] },
+  ],
+};

@@ -6,6 +6,7 @@ import { INK, Outfit } from "../videos/bridge/toon";
 import { Cam, Room, Tag, Toon } from "../videos/milgram/Milgram";
 import type { Cena, Cenas, Roupa, Texto } from "./tipos";
 import { CenarioBiblia, FaixaBiblia, IconeBiblia, LegendaBiblia, ReferenciaBiblia, SeloBiblia } from "./biblia";
+import { CenarioCinema, LegendaCinema, ObjetoCinema } from "./matrixxtz";
 import { AnotacaoMundo, CenarioMundo, FiltrosMundo, IconeGiz, LegendaMundo } from "./mundo";
 import { AdesivoVPC, CelularVPC, CenarioVPC, HudVPC, LegendaVPC, Pilula, Titulo, hudDaCena } from "./vpc";
 
@@ -48,6 +49,23 @@ export const Generico: React.FC<GenericoProps> = ({ cenas, audio }) => {
   const personagens = c.personagens.map((p, j) => (
     <Toon key={`${i}-${j}`} o={paraOutfit(p.roupa)} expr={p.expr} seed={p.seed ?? j + 1} h={p.altura} x={p.x} y={p.y} mode={p.modo} flip={p.flip} />
   ));
+
+  if (cenas.estilo === "matrixxtz-2d") {
+    const origem = c.origem ? `${c.origem[0]}% ${c.origem[1]}%` : "50% 50%";
+    return (
+      <AbsoluteFill style={{ background: "#000", opacity: fade }}>
+        {src && <Audio src={src} />}
+        <CenarioCinema c={c}>
+          <Cam a={c.inicio} z0={c.zoom?.[0] ?? 1} z1={c.zoom?.[1] ?? 1.1} origin={origem} noZap>
+            <AbsoluteFill style={{ filter: "drop-shadow(8px -2px 0 rgba(255,214,150,.28)) drop-shadow(0 14px 18px rgba(20,10,4,.4))" }}>{personagens}</AbsoluteFill>
+            {(c.objetos ?? []).map((o, j) => <ObjetoCinema key={`o${i}-${j}`} o={o} sec={local} />)}
+          </Cam>
+        </CenarioCinema>
+        <LegendaCinema sec={sec} legendas={cenas.legendas} destaques={cenas.destaques} />
+        {c.flash && local < 2 / FPS && <AbsoluteFill style={{ background: "#fff", opacity: 0.8 }} />}
+      </AbsoluteFill>
+    );
+  }
 
   if (cenas.estilo === "mundo-oculto") {
     return (
