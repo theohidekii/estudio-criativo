@@ -11,6 +11,7 @@ import { db } from "@/lib/db";
 import { gerarNarracao, pastaVideo } from "@/lib/narracao";
 import { instrucaoBase, pedidoAjuste, pedidoCenas } from "@/lib/prompts";
 import { usuarioAtual } from "@/lib/sessao";
+import { PageHead } from "../../PageHead";
 import Atualizar from "../../ideias/[id]/Atualizar";
 import EditorCenas from "./EditorCenas";
 
@@ -141,48 +142,77 @@ export default async function Video({ params, searchParams }: { params: Promise<
   const renderizando = ver.status === "renderizando";
   return (
     <>
-      <h1>{vid.titulo} <span className="mudo">v{ver.numero}</span></h1>
-      <div className="mudo" style={{ marginBottom: 12 }}>
-        Versões: {todas.map((x) => <a key={x.id} href={`/videos/${id}?v=${x.numero}`} style={{ marginRight: 8 }}>v{x.numero}</a>)}
-        {ver.id === todas[0].id && <form action={novaVersao} style={{ display: "inline" }}><button style={{ background: "#334155", padding: "4px 10px" }}>+ nova versão</button></form>}
-      </div>
-      {ver.erro && <p className="card" style={{ color: "#f87171", whiteSpace: "pre-wrap" }}>{ver.erro}</p>}
-      {(emAndamento.length > 0 || renderizando) && <p style={{ color: "#fbbf24" }}>{renderizando ? "Renderizando o vídeo… (pode levar alguns minutos)" : "IA trabalhando…"} {emAndamento.length > 0 && !online && "(seu agente está offline)"}</p>}
-
-      <div className="card">
-        <strong>1. Narração</strong>
-        <form action={voz} style={{ display: "flex", gap: 8, marginTop: 8 }}>
-          <select name="vozId" defaultValue={vozEscolhida} style={{ flex: 1, padding: 10 }}>
-            {listaVozes.map((v) => <option key={v.id} value={v.idExterno}>{v.nome}</option>)}
-          </select>
-          <button disabled={listaVozes.length === 0}>{ver.arquivoVoz ? "Gerar de novo" : "Gerar narração"}</button>
-        </form>
-        {listaVozes.length === 0 && <p className="mudo">Importe as vozes primeiro, na página Vozes.</p>}
-        {ver.arquivoVoz && <p className="mudo">Pronta: {ver.duracao?.toFixed(1)} s. <audio controls src={`/api/videos/${id}/audio?v=${ver.numero}`} style={{ verticalAlign: "middle" }} /></p>}
-      </div>
-
-      <div className="card">
-        <strong>2. Cenas (IA)</strong>
-        <form action={cenas} style={{ marginTop: 8 }}><button disabled={!ver.duracao}>{ver.cenas ? "Gerar cenas de novo" : "Gerar cenas com IA"}</button></form>
-      </div>
-
-      {ver.cenas && (
-        <>
-          <div className="card">
-            <strong>3. Pré-visualizar e ajustar</strong>
-            <EditorCenas key={`${ver.id}-${ver.cenas.length}`} videoId={id} numero={ver.numero} inicial={JSON.stringify(JSON.parse(ver.cenas), null, 2)} duracao={ver.duracao ?? 30} temAudio={!!ver.arquivoVoz} salvar={salvar} />
-          </div>
-          <form action={ajuste} className="card">
-            <label>Pedir um ajuste à IA (ex.: "aumente o texto da cena 4 e deixe o fundo mais escuro")<input name="instrucao" /></label>
-            <button>Pedir ajuste</button>
-          </form>
-          <div className="card">
-            <strong>4. Renderizar</strong>
-            <form action={renderizar} style={{ marginTop: 8 }}><button disabled={renderizando}>Renderizar MP4</button></form>
-            {ver.status === "pronto" && <p><a href={`/api/videos/${id}/arquivo?v=${ver.numero}`} target="_blank" rel="noreferrer">Abrir o vídeo</a></p>}
-          </div>
-        </>
+      <PageHead titulo={vid.titulo} descricao={<span className="mono">Vídeo #{id} · versão {ver.numero}</span>}>
+        {todas.map((x) => <a key={x.id} href={`/videos/${id}?v=${x.numero}`} className={`etiqueta${x.id === ver.id ? " acento" : ""}`}>v{x.numero}</a>)}
+        {ver.id === todas[0].id && <form action={novaVersao}><button className="sec peq" title="Copia a versão atual para ajustar sem perder esta">Nova versão</button></form>}
+      </PageHead>
+      {ver.erro && <div className="aviso erro" role="alert">{ver.erro}</div>}
+      {(emAndamento.length > 0 || renderizando) && (
+        <div className="aviso">
+          {renderizando ? "Renderizando o vídeo. Isso pode levar alguns minutos e a página atualiza sozinha." : "A IA está trabalhando. A página atualiza sozinha."}
+          {emAndamento.length > 0 && !online && " Seu agente está desconectado: conecte-o em Agente local."}
+        </div>
       )}
+
+      <div className={`passo ${ver.arquivoVoz ? "feito" : "atual"}`}>
+        <div className="n">{ver.arquivoVoz ? "✓" : "1"}</div>
+        <div>
+          <h3>Narração</h3>
+          <form action={voz} className="linha">
+            <select name="vozId" defaultValue={vozEscolhida} className="grow" style={{ margin: 0 }}>
+              {listaVozes.map((v) => <option key={v.id} value={v.idExterno}>{v.nome}</option>)}
+            </select>
+            <button disabled={listaVozes.length === 0} className={ver.arquivoVoz ? "sec" : undefined}>{ver.arquivoVoz ? "Gerar de novo" : "Gerar narração"}</button>
+          </form>
+          {listaVozes.length === 0 && <p className="mudo pequeno" style={{ marginTop: 8 }}>Nenhuma voz disponível. Importe as vozes na página Vozes.</p>}
+          {ver.arquivoVoz && (
+            <div className="linha" style={{ marginTop: 12 }}>
+              <audio controls src={`/api/videos/${id}/audio?v=${ver.numero}`} />
+              <span className="mono mudo">{ver.duracao?.toFixed(1)} s</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className={`passo ${ver.cenas ? "feito" : ver.arquivoVoz ? "atual" : ""}`}>
+        <div className="n">{ver.cenas ? "✓" : "2"}</div>
+        <div>
+          <h3>Cenas</h3>
+          <form action={cenas} className="linha">
+            <button disabled={!ver.duracao} className={ver.cenas ? "sec" : undefined}>{ver.cenas ? "Gerar cenas de novo" : "Gerar cenas com IA"}</button>
+            {!ver.duracao && <span className="mudo pequeno">Gere a narração primeiro.</span>}
+          </form>
+        </div>
+      </div>
+
+      <div className={`passo ${ver.cenas ? "atual" : ""}`}>
+        <div className="n">3</div>
+        <div>
+          <h3>Pré-visualizar e ajustar</h3>
+          {ver.cenas ? (
+            <>
+              <EditorCenas key={`${ver.id}-${ver.cenas.length}`} videoId={id} numero={ver.numero} inicial={JSON.stringify(JSON.parse(ver.cenas), null, 2)} duracao={ver.duracao ?? 30} temAudio={!!ver.arquivoVoz} salvar={salvar} />
+              <form action={ajuste} className="linha" style={{ marginTop: 16, alignItems: "flex-end" }}>
+                <label className="grow" style={{ margin: 0 }}>Pedir um ajuste à IA
+                  <input name="instrucao" placeholder="Aumente o texto da cena 4 e escureça o fundo" style={{ marginBottom: 0 }} />
+                </label>
+                <button className="sec">Pedir ajuste</button>
+              </form>
+            </>
+          ) : <p className="mudo">Aparece depois que as cenas forem geradas.</p>}
+        </div>
+      </div>
+
+      <div className={`passo ${ver.status === "pronto" ? "feito" : ""}`}>
+        <div className="n">{ver.status === "pronto" ? "✓" : "4"}</div>
+        <div>
+          <h3>Renderizar</h3>
+          <form action={renderizar} className="linha">
+            <button disabled={renderizando || !ver.cenas}>{renderizando ? "Renderizando" : "Renderizar MP4"}</button>
+            {ver.status === "pronto" && <a href={`/api/videos/${id}/arquivo?v=${ver.numero}`} target="_blank" rel="noreferrer" className="btn" style={{ background: "transparent", color: "var(--txt)", borderColor: "var(--linha-forte)" }}>Abrir vídeo</a>}
+          </form>
+        </div>
+      </div>
       <Atualizar ativo={emAndamento.length > 0 || renderizando} />
     </>
   );

@@ -1,16 +1,16 @@
 import "./globals.css";
-import Link from "next/link";
+import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
+
+const sans = Geist({ subsets: ["latin"], variable: "--fonte-sans", display: "swap" });
+const mono = Geist_Mono({ subsets: ["latin"], variable: "--fonte-mono", display: "swap" });
 
 export const metadata = { title: "Estúdio Criativo" };
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR">
-      <body>
-        <nav><strong>Estúdio Criativo</strong><Link href="/">Painel</Link><Link href="/perfis">Perfis</Link><Link href="/ideias">Ideias</Link><Link href="/roteiros">Roteiros</Link><Link href="/vozes">Vozes</Link><Link href="/videos">Vídeos</Link><Link href="/agentes">Agente local</Link></nav>
-        <main>{children}</main>
-      </body>
+    <html lang="pt-BR" className={`${sans.variable} ${mono.variable}`}>
+      <body>{children}</body>
     </html>
   );
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { conversas, perfis } from "@estudio/db";
 import { db } from "@/lib/db";
 import { usuarioAtual } from "@/lib/sessao";
+import { PageHead } from "../PageHead";
 
 export const dynamic = "force-dynamic";
 
@@ -21,17 +22,22 @@ export default async function Ideias() {
   const cs = db().select().from(conversas).where(eq(conversas.usuarioId, uid)).orderBy(desc(conversas.id)).all();
   return (
     <>
-      <h1>Ideias</h1>
-      <form action={nova} className="card">
-        <label>Perfil (dá o contexto de nicho e tom)
-          <select name="perfilId" style={{ width: "100%", padding: 10, margin: "6px 0 12px" }}>
+      <PageHead titulo="Ideias" descricao="Converse com a IA para encontrar temas. Escolha um perfil para ela usar o nicho e o tom de voz dele." />
+      <form action={nova} className="card linha" style={{ alignItems: "flex-end" }}>
+        <label className="grow" style={{ margin: 0 }}>Perfil
+          <select name="perfilId" style={{ marginBottom: 0 }}>
             <option value="">Sem perfil</option>
             {ps.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
           </select>
         </label>
         <button>Nova conversa</button>
       </form>
-      {cs.map((c) => <div key={c.id} className="card"><Link href={`/ideias/${c.id}`}>{c.titulo} #{c.id}</Link></div>)}
+      <h2>Conversas</h2>
+      {cs.length === 0 ? (
+        <div className="vazio"><strong>Nenhuma conversa</strong>Inicie uma conversa para gerar as primeiras ideias.</div>
+      ) : (
+        <div className="lista">{cs.map((c) => <Link key={c.id} href={`/ideias/${c.id}`}><span>{c.titulo}</span><span className="mono mudo">#{c.id}</span></Link>)}</div>
+      )}
     </>
   );
 }

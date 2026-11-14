@@ -23,13 +23,16 @@ async function entrar(form: FormData) {
 export default async function Login({ searchParams }: { searchParams: Promise<{ erro?: string }> }) {
   const { erro } = await searchParams;
   return (
-    <form action={entrar} className="card" style={{ maxWidth: 360, margin: "80px auto" }}>
-      <h2>Entrar</h2>
-      {erro && <p style={{ color: "#f87171" }}>E-mail ou senha incorretos.</p>}
-      <label>E-mail<input name="email" type="email" required /></label>
-      <label>Senha (mín. 8 caracteres)<input name="senha" type="password" required minLength={8} /></label>
-      <button>Entrar</button>
-      <p className="mudo">No primeiro acesso, esses dados criam a conta de administrador.</p>
-    </form>
+    <div className="entrada">
+      <form action={entrar} className="card">
+        <div className="marca" style={{ padding: "0 0 22px" }}><i aria-hidden="true" />Estúdio Criativo</div>
+        <h1>Entrar</h1>
+        <p className="mudo" style={{ marginBottom: 20 }}>No primeiro acesso, estes dados criam a conta de administrador.</p>
+        {erro && <p className="aviso erro" role="alert">E-mail ou senha incorretos. Confira os dados e tente de novo.</p>}
+        <label>E-mail<input name="email" type="email" autoComplete="email" required autoFocus /></label>
+        <label>Senha<input name="senha" type="password" autoComplete="current-password" required minLength={8} placeholder="Mínimo de 8 caracteres" /></label>
+        <button style={{ width: "100%", padding: "10px 14px" }}>Entrar</button>
+      </form>
+    </div>
   );
 }

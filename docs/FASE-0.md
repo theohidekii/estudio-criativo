@@ -45,3 +45,11 @@ Fluxo: roteiro → **narração** (ElevenLabs com tempos por palavra; velocidade
 - Testado de ponta a ponta com a ElevenLabs e o Claude reais: narração de 9,8 s, 7 cenas válidas, render 1080x1920 com áudio.
 - Limites atuais: o visual dos vídeos gerados é bem mais simples que os feitos à mão (Maníaco, Daniel); ainda não há efeitos sonoros nem trilha, corte de pausas, nem legenda palavra a palavra. Vídeos antigos continuam como composições próprias do Remotion.
 - Correções do teste: `<form>` dentro de `<p>` (hidratação) e caminhos com espaço no `remotion render` no Windows.
+
+## Redesign da interface
+
+- Sistema de design em `apps/web/src/app/globals.css`: grafite frio, um único acento azul (ação principal, item ativo, foco), Geist para texto e Geist Mono só para números e tempos.
+- Barra lateral com o fluxo (Criar: Ideias, Roteiros, Vídeos; Biblioteca: Perfis, Vozes), item ativo e indicador de conexão do agente sempre visível. No celular vira uma barra superior com rolagem lateral.
+- Rotas das telas internas agrupadas em `(app)`; o login fica fora, sem a barra lateral. Cabeçalho padrão de página em `PageHead`.
+- Estúdio de vídeo como sequência de 4 etapas (narração, cenas, pré-visualização, render) com o estado de cada uma.
+- Estados vazios com orientação, erros que dizem o que fazer, botões com hierarquia (principal, secundário, perigo), foco visível e respeito a `prefers-reduced-motion`.

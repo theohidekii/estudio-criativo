@@ -36,8 +36,8 @@ export default function EditorCenas({ videoId, numero, inicial, duracao, temAudi
   };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", gap: 16, alignItems: "start" }}>
-      <div>
+    <div className="editor">
+      <div style={{ position: "sticky", top: 16 }}>
         {cenas ? (
           <Player
             component={Generico}
@@ -46,26 +46,30 @@ export default function EditorCenas({ videoId, numero, inicial, duracao, temAudi
             fps={30}
             compositionWidth={1080}
             compositionHeight={1920}
-            style={{ width: 320, borderRadius: 12, border: "1px solid #262633" }}
+            style={{ width: 320, borderRadius: 10, border: "1px solid var(--linha-forte)" }}
             controls
             acknowledgeRemotionLicense
           />
-        ) : <div className="card" style={{ color: "#f87171" }}>JSON inválido: {erro}</div>}
+        ) : <div className="aviso erro">O JSON está inválido: {erro}. Corrija na aba Código.</div>}
       </div>
       <div>
-        <div style={{ marginBottom: 8 }}>
-          <button type="button" onClick={() => setAba("simples")} style={{ background: aba === "simples" ? undefined : "#334155" }}>Editor simples</button>{" "}
-          <button type="button" onClick={() => setAba("codigo")} style={{ background: aba === "codigo" ? undefined : "#334155" }}>Código</button>
+        <div className="linha" style={{ marginBottom: 12 }}>
+          <button type="button" onClick={() => setAba("simples")} className={aba === "simples" ? "peq" : "sec peq"}>Editor simples</button>
+          <button type="button" onClick={() => setAba("codigo")} className={aba === "codigo" ? "peq" : "sec peq"}>Código</button>
         </div>
         {aba === "codigo" ? (
-          <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={26} spellCheck={false} style={{ fontFamily: "monospace", fontSize: 12 }} />
+          <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={26} spellCheck={false} className="mono" style={{ marginTop: 0 }} />
         ) : cenas ? (
-          <div style={{ maxHeight: 560, overflow: "auto" }}>
+          <div style={{ maxHeight: 560, overflow: "auto", paddingRight: 4 }}>
             {cenas.cenas.map((c, i) => (
-              <div key={i} className="card" style={{ padding: 10 }}>
-                <label>Cena {i + 1} começa em (s)
-                  <input type="number" step="0.1" min="0" value={c.inicio} onChange={(e) => mudar((x) => { x.cenas[i].inicio = Number(e.target.value); })} />
-                </label>
+              <div key={i} className="card" style={{ padding: 12 }}>
+                <div className="linha" style={{ justifyContent: "space-between", marginBottom: 10 }}>
+                  <strong>Cena {i + 1}</strong>
+                  <label className="linha mudo pequeno" style={{ fontWeight: 400 }}>começa em
+                    <input type="number" step="0.1" min="0" value={c.inicio} className="mono" style={{ width: 84, margin: 0, padding: "4px 8px" }}
+                      onChange={(e) => mudar((x) => { x.cenas[i].inicio = Number(e.target.value); })} />s
+                  </label>
+                </div>
                 {c.textos.map((t, j) => (
                   <label key={j}>Texto {j + 1}
                     <input value={t.texto} maxLength={60} onChange={(e) => mudar((x) => { x.cenas[i].textos[j].texto = e.target.value; })} />
@@ -73,7 +77,7 @@ export default function EditorCenas({ videoId, numero, inicial, duracao, temAudi
                 ))}
                 {c.personagens.map((p, j) => (
                   <label key={j}>Expressão do personagem {j + 1}
-                    <select value={p.expr} onChange={(e) => mudar((x) => { x.cenas[i].personagens[j].expr = e.target.value as never; })} style={{ width: "100%", padding: 8 }}>
+                    <select value={p.expr} onChange={(e) => mudar((x) => { x.cenas[i].personagens[j].expr = e.target.value as never; })} style={{ marginBottom: 0 }}>
                       {["neutral", "stern", "grin", "laugh", "nervous", "shock", "relief", "dazed", "pained", "smile", "smile_closed", "whistle"].map((x) => <option key={x}>{x}</option>)}
                     </select>
                   </label>
@@ -82,7 +86,7 @@ export default function EditorCenas({ videoId, numero, inicial, duracao, temAudi
             ))}
           </div>
         ) : null}
-        <form action={salvar} style={{ marginTop: 8 }}>
+        <form action={salvar} style={{ marginTop: 12 }}>
           <input type="hidden" name="json" value={texto} />
           <button disabled={!cenas}>Salvar alterações</button>
         </form>

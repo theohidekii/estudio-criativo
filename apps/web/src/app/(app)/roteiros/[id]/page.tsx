@@ -6,6 +6,7 @@ import { enfileirar } from "@estudio/db/src/fila";
 import { db } from "@/lib/db";
 import { instrucaoBase, pedidoPesquisa, pedidoRascunho } from "@/lib/prompts";
 import { usuarioAtual } from "@/lib/sessao";
+import { PageHead } from "../../PageHead";
 import Atualizar from "../../ideias/[id]/Atualizar";
 
 export const dynamic = "force-dynamic";
@@ -66,38 +67,58 @@ export default async function Roteiro({ params }: { params: Promise<{ id: string
 
   return (
     <>
-      <h1>Roteiro #{id}</h1>
-      {emAndamento.length > 0 && <p style={{ color: "#fbbf24" }}>IA trabalhando… {!online && "(seu agente está offline: ligue-o em Agente local)"}</p>}
-      <form className="card">
-        <label>Título<input name="titulo" defaultValue={r.titulo} /></label>
-        <label>Etapa
-          <select name="etapa" defaultValue={r.etapa} style={{ width: "100%", padding: 10, margin: "6px 0 12px" }}>
-            {ETAPAS.map((e) => <option key={e} value={e}>{e}</option>)}
-          </select>
-        </label>
-        <label>Pesquisa de fatos (fatos, divergências, o que evitar)<textarea name="pesquisa" rows={12} defaultValue={r.pesquisa} /></label>
-        <label>Roteiro (narração)<textarea name="texto" rows={12} defaultValue={r.texto} /></label>
-        <button formAction={salvar}>Salvar</button>{" "}
-        <button formAction={excluir} style={{ background: "#7f1d1d" }}>Excluir</button>
-        <p className="mudo">A IA sobrescreve o campo escolhido. Salve antes se tiver editado à mão.</p>
-      </form>
-      <div className="card">
-        <form action={pedirIA} style={{ display: "inline" }}><input type="hidden" name="campo" value="pesquisa" /><button>Pesquisar fatos (IA + web)</button></form>{" "}
-        <form action={pedirIA} style={{ display: "inline" }}><input type="hidden" name="campo" value="texto" /><button style={{ background: "#334155" }}>Escrever rascunho (IA)</button></form>
+      <PageHead titulo={r.titulo} descricao={<span className="mono">Roteiro #{id}</span>}>
+        <a href="/roteiros" className="btn" style={{ background: "transparent", color: "var(--txt)", borderColor: "var(--linha-forte)" }}>Todos os roteiros</a>
+      </PageHead>
+      {emAndamento.length > 0 && <div className="aviso">A IA está trabalhando neste roteiro. {!online ? "Seu agente está desconectado: conecte-o em Agente local." : "Esta página atualiza sozinha."}</div>}
+
+      <div className="card linha">
+        <span className="mudo">Pedir à IA</span>
+        <form action={pedirIA}><input type="hidden" name="campo" value="pesquisa" /><button className="sec">Pesquisar fatos na web</button></form>
+        <form action={pedirIA}><input type="hidden" name="campo" value="texto" /><button className="sec">Escrever rascunho</button></form>
+        <span className="mudo pequeno">O resultado substitui o campo correspondente. Salve antes se editou à mão.</span>
       </div>
-      <h2>Fontes</h2>
-      {fs.map((f) => (
-        <div key={f.id} className="card">
-          <a href={f.url} target="_blank" rel="noreferrer">{f.url}</a>
-          {f.nota && <div>{f.nota}</div>}{f.ressalva && <div style={{ color: "#fbbf24" }}>Ressalva: {f.ressalva}</div>}
-          <form action={delFonte}><input type="hidden" name="fid" value={f.id} /><button style={{ background: "#334155", marginTop: 8 }}>Remover</button></form>
+
+      <form className="card">
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 200px", gap: 16 }}>
+          <label>Título<input name="titulo" defaultValue={r.titulo} /></label>
+          <label>Etapa
+            <select name="etapa" defaultValue={r.etapa}>{ETAPAS.map((e) => <option key={e} value={e}>{e[0].toUpperCase() + e.slice(1)}</option>)}</select>
+          </label>
         </div>
-      ))}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 16 }}>
+          <label>Pesquisa de fatos<textarea name="pesquisa" rows={16} defaultValue={r.pesquisa} placeholder="Fatos confirmados, pontos em que as fontes divergem e o que evitar." /></label>
+          <label>Roteiro da narração<textarea name="texto" rows={16} defaultValue={r.texto} placeholder="Uma frase por linha." /></label>
+        </div>
+        <div className="linha" style={{ justifyContent: "space-between" }}>
+          <button formAction={salvar}>Salvar alterações</button>
+          <button formAction={excluir} className="perigo">Excluir roteiro</button>
+        </div>
+      </form>
+
+      <h2>Fontes</h2>
+      {fs.length === 0 && <div className="vazio" style={{ marginBottom: 12 }}><strong>Nenhuma fonte registrada</strong>Anote de onde vem cada fato e qualquer ressalva.</div>}
+      {fs.length > 0 && (
+        <div className="lista" style={{ marginBottom: 12 }}>
+          {fs.map((f) => (
+            <div key={f.id}>
+              <div className="grow">
+                <a href={f.url} target="_blank" rel="noreferrer" style={{ wordBreak: "break-all" }}>{f.url}</a>
+                {f.nota && <div className="mudo pequeno">{f.nota}</div>}
+                {f.ressalva && <div className="pequeno" style={{ color: "var(--aviso)" }}>Ressalva: {f.ressalva}</div>}
+              </div>
+              <form action={delFonte}><input type="hidden" name="fid" value={f.id} /><button className="sec peq">Remover</button></form>
+            </div>
+          ))}
+        </div>
+      )}
       <form action={addFonte} className="card">
-        <label>URL<input name="url" placeholder="https://…" /></label>
-        <label>Nota<input name="nota" /></label>
-        <label>Ressalva<input name="ressalva" /></label>
-        <button>Adicionar fonte</button>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0 16px" }}>
+          <label>Endereço<input name="url" placeholder="https://…" /></label>
+          <label>Nota<input name="nota" /></label>
+          <label>Ressalva<input name="ressalva" /></label>
+        </div>
+        <button className="sec">Adicionar fonte</button>
       </form>
       <Atualizar ativo={emAndamento.length > 0} />
     </>

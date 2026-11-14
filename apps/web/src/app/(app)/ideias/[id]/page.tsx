@@ -6,6 +6,7 @@ import { enfileirar } from "@estudio/db/src/fila";
 import { db } from "@/lib/db";
 import { instrucaoBase, pedidoIdeias } from "@/lib/prompts";
 import { usuarioAtual } from "@/lib/sessao";
+import { PageHead } from "../../PageHead";
 import Atualizar from "./Atualizar";
 
 export const dynamic = "force-dynamic";
@@ -44,18 +45,27 @@ export default async function Conversa({ params }: { params: Promise<{ id: strin
 
   return (
     <>
-      <h1>Conversa #{id}</h1>
-      {!online && <p style={{ color: "#fbbf24" }}>Seu agente local está offline. Ligue-o em <a href="/agentes">Agente local</a> para a IA responder.</p>}
-      {msgs.map((m) => (
-        <div key={m.id} className="card" style={{ borderColor: m.papel === "ia" ? "#3b2f6b" : undefined }}>
-          <div className="mudo">{m.papel === "ia" ? "IA" : "Você"}</div>
-          <div style={{ whiteSpace: "pre-wrap" }}>{m.status === "pendente" ? "pensando…" : m.status === "erro" ? `Erro: ${m.texto}` : m.texto}</div>
+      <PageHead titulo={`Conversa #${id}`} descricao="A IA responde pelo seu agente local, com o Claude Haiku.">
+        <a href="/ideias" className="btn" style={{ background: "transparent", color: "var(--txt)", borderColor: "var(--linha-forte)" }}>Todas as conversas</a>
+      </PageHead>
+      {!online && <div className="aviso">Seu agente está desconectado, então a IA não vai responder. <a href="/agentes" style={{ textDecoration: "underline" }}>Conectar agente</a></div>}
+      <div className="chat">
+        {msgs.length === 0 && <div className="vazio"><strong>Comece pedindo ideias</strong>Use o botão Gerar ideias pelo nicho ou escreva sua própria pergunta.</div>}
+        {msgs.map((m) => (
+          <div key={m.id} className={`msg ${m.papel === "ia" ? "ia" : "eu"}`}>
+            <div className="quem">{m.papel === "ia" ? "IA" : "Você"}</div>
+            <div className={`corpo${m.status === "pendente" ? " pensando" : ""}`} style={m.status === "erro" ? { color: "var(--erro)" } : undefined}>
+              {m.status === "pendente" ? "Pensando" : m.status === "erro" ? `Não consegui responder: ${m.texto}` : m.texto}
+            </div>
+          </div>
+        ))}
+      </div>
+      <form className="card" style={{ position: "sticky", bottom: 16 }}>
+        <textarea name="texto" rows={3} placeholder="Escreva uma mensagem ou observações para guiar as ideias" style={{ marginTop: 0 }} />
+        <div className="linha">
+          <button formAction={falar}>Enviar</button>
+          <button formAction={ideias} className="sec">Gerar ideias pelo nicho</button>
         </div>
-      ))}
-      <form className="card">
-        <textarea name="texto" rows={3} placeholder="Escreva sua mensagem ou observações para as ideias" />
-        <button formAction={falar}>Enviar</button>{" "}
-        <button formAction={ideias} style={{ background: "#334155" }}>Gerar ideias pelo nicho</button>
       </form>
       <Atualizar ativo={pendente} />
     </>
