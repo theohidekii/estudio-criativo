@@ -9,7 +9,8 @@ const GRUPOS: { titulo: string; itens: { href: string; nome: string; n?: string 
     { href: "/videos", nome: "Vídeos", n: "3" },
     { href: "/studio", nome: "Editor", n: "4" },
   ] },
-  { titulo: "Acompanhar", itens: [
+  { titulo: "Publicar e medir", itens: [
+    { href: "/agendamento", nome: "Agendamento" },
     { href: "/metricas", nome: "Métricas" },
   ] },
   { titulo: "Biblioteca", itens: [

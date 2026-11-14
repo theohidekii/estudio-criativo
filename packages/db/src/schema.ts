@@ -184,3 +184,30 @@ export const metricasSnapshot = sqliteTable("metricas_snapshot", {
   seguidoresGanhos: integer("seguidores_ganhos"),
   fonte: text("fonte", { enum: ["api", "manual"] }).notNull().default("api"),
 });
+
+/** Um post agendado: um vídeo renderizado, uma legenda base e uma data, publicado em várias contas. */
+export const posts = sqliteTable("posts", {
+  id: id(),
+  versaoId: integer("versao_id").notNull().references(() => versoesVideo.id, { onDelete: "cascade" }),
+  legendaBase: text("legenda_base").notNull().default(""),
+  agendadoPara: integer("agendado_para", { mode: "timestamp" }).notNull(),
+  status: text("status", { enum: ["agendado", "publicando", "concluido", "parcial", "falhou", "cancelado"] }).notNull().default("agendado"),
+  criadoEm: criadoEm(),
+});
+
+/** Destino de um post em uma conta (liga/desliga por rede, legenda própria opcional, resultado e erro). */
+export const postsRede = sqliteTable("posts_rede", {
+  id: id(),
+  postId: integer("post_id").notNull().references(() => posts.id, { onDelete: "cascade" }),
+  contaId: integer("conta_id").notNull().references(() => contasSociais.id, { onDelete: "cascade" }),
+  rede: text("rede", { enum: ["instagram", "tiktok", "facebook", "youtube"] }).notNull(),
+  legenda: text("legenda"), // null = usa a legenda base
+  titulo: text("titulo"), // YouTube
+  privacidade: text("privacidade", { enum: ["private", "unlisted", "public"] }).notNull().default("private"), // YouTube
+  status: text("status", { enum: ["pendente", "publicando", "concluido", "falhou", "cancelado"] }).notNull().default("pendente"),
+  idExterno: text("id_externo"),
+  url: text("url"),
+  erro: text("erro"),
+  tentativas: integer("tentativas").notNull().default(0),
+  publicadoEm: integer("publicado_em", { mode: "timestamp" }),
+});

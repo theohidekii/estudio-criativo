@@ -17,5 +17,7 @@ export async function json<T>(url: string, init: RequestInit | undefined, rotulo
   }
   return j as T;
 }
+/** Como `json`, mas devolve a Response inteira (para ler cabeçalhos como Location em uploads). */
+export const bruto = (url: string, init?: RequestInit) => impl(url, init);
 export const form = (o: Record<string, string>) => new URLSearchParams(o).toString();
 export const POST_FORM = (o: Record<string, string>): RequestInit => ({ method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body: form(o) });

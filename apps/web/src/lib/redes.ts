@@ -21,7 +21,12 @@ export const temColetaAutomatica = (rede: Rede) => rede !== "facebook";
 
 export function credenciaisDaConta(c: typeof contasSociais.$inferSelect): Credenciais | null {
   if (!c.tokenCriptografado) return null;
-  return { accessToken: decifrar(c.tokenCriptografado), refreshToken: c.refreshTokenCriptografado ? decifrar(c.refreshTokenCriptografado) : undefined, expiraEm: c.expiraEm ?? undefined, extra: JSON.parse(c.extra || "{}") };
+  try {
+    return { accessToken: decifrar(c.tokenCriptografado), refreshToken: c.refreshTokenCriptografado ? decifrar(c.refreshTokenCriptografado) : undefined, expiraEm: c.expiraEm ?? undefined, extra: JSON.parse(c.extra || "{}") };
+  } catch (e) {
+    if (/TOKEN_ENC_KEY/.test((e as Error).message)) throw e;
+    throw new Error("não consegui abrir o acesso guardado desta conta (a TOKEN_ENC_KEY mudou?). Conecte a conta de novo em Contas.");
+  }
 }
 
 /** Grava as publicações e um snapshot de métricas para cada uma. Devolve quantas publicações são novas. */
@@ -46,6 +51,22 @@ export function criarConta(perfilId: number, rede: Rede, nome: string, tokens: {
   return d.insert(contasSociais).values({ perfilId, rede, idExterno: idExterno ?? null, ...valores }).returning().get().id;
 }
 
+/** Credenciais prontas para uso: renova o token 5 minutos antes de vencer (YouTube e TikTok). O da Meta dura ~60 dias e precisa de nova conexão depois. */
+export async function credenciaisAtualizadas(conta: typeof contasSociais.$inferSelect): Promise<Credenciais> {
+  const rede = conta.rede as Rede;
+  let cred = credenciaisDaConta(conta);
+  if (!cred) throw new Error("conta sem token (cadastrada à mão): use a entrada manual ou conecte pela rede");
+  if (cred.expiraEm && cred.expiraEm.getTime() < Date.now() + 5 * 60_000) {
+    if (!cred.refreshToken) throw new Error("o acesso expirou: conecte a conta de novo");
+    const app = configApp(rede);
+    if (!app) throw new Error("faltam as credenciais do app desta rede no .env.local (necessárias para renovar o acesso)");
+    const novo = rede === "youtube" ? await youtube.renovar(app, cred.refreshToken, cred.extra) : await tiktok.renovar(app, cred.refreshToken, cred.extra);
+    db().update(contasSociais).set({ tokenCriptografado: cifrar(novo.accessToken), refreshTokenCriptografado: novo.refreshToken ? cifrar(novo.refreshToken) : conta.refreshTokenCriptografado, expiraEm: novo.expiraEm ?? null }).where(eq(contasSociais.id, conta.id)).run();
+    cred = { ...cred, accessToken: novo.accessToken, refreshToken: novo.refreshToken ?? cred.refreshToken, expiraEm: novo.expiraEm };
+  }
+  return cred;
+}
+
 /** Coleta uma conta: renova o token se preciso, lê publicações e métricas, grava o histórico. Nunca lança: registra o erro na conta. */
 export async function coletarConta(contaId: number): Promise<{ ok: boolean; novas: number; total: number; erro?: string }> {
   const d = db();
@@ -53,17 +74,7 @@ export async function coletarConta(contaId: number): Promise<{ ok: boolean; nova
   if (!conta) return { ok: false, novas: 0, total: 0, erro: "conta inexistente" };
   const rede = conta.rede as Rede;
   try {
-    let cred = credenciaisDaConta(conta);
-    if (!cred) throw new Error("conta sem token (cadastrada à mão): use a entrada manual ou conecte pela rede");
-    const app = configApp(rede);
-    if (!app) throw new Error("faltam as credenciais do app desta rede no .env.local");
-    // renova o token 5 minutos antes de vencer (YouTube e TikTok); o da Meta dura ~60 dias e precisa de nova conexão depois
-    if (cred.expiraEm && cred.expiraEm.getTime() < Date.now() + 5 * 60_000) {
-      if (!cred.refreshToken) throw new Error("o acesso expirou: conecte a conta de novo");
-      const novo = rede === "youtube" ? await youtube.renovar(app, cred.refreshToken, cred.extra) : await tiktok.renovar(app, cred.refreshToken, cred.extra);
-      d.update(contasSociais).set({ tokenCriptografado: cifrar(novo.accessToken), refreshTokenCriptografado: novo.refreshToken ? cifrar(novo.refreshToken) : conta.refreshTokenCriptografado, expiraEm: novo.expiraEm ?? null }).where(eq(contasSociais.id, conta.id)).run();
-      cred = { ...cred, accessToken: novo.accessToken, refreshToken: novo.refreshToken ?? cred.refreshToken, expiraEm: novo.expiraEm };
-    }
+    const cred = await credenciaisAtualizadas(conta);
     let itens: Coletada[] = [];
     if (rede === "youtube") {
       itens = await youtube.listar(cred.accessToken, cred.extra.uploads, 100);

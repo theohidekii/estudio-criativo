@@ -3,17 +3,17 @@ import { form, json } from "./http";
 import { type Coletada, type ConfigApp, type MetricasRemotas, type Tokens, vazias } from "./tipos";
 
 const V = "v23.0";
-export const ESCOPOS_IG = "instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement";
+export const ESCOPOS_IG = "instagram_basic,instagram_manage_insights,instagram_content_publish,pages_show_list,pages_read_engagement";
 export const urlAutorizacao = (c: ConfigApp, redirectUri: string, state: string) =>
   `https://www.facebook.com/${V}/dialog/oauth?${form({ client_id: c.clientId, redirect_uri: redirectUri, state, scope: ESCOPOS_IG })}`;
 
-export type ContaIg = { pageId: string; pageNome: string; igUserId: string; igUsuario: string };
+export type ContaIg = { pageId: string; pageNome: string; igUserId: string; igUsuario: string; pageToken?: string };
 
 /** Contas de Instagram profissional ligadas às Páginas que a pessoa administra. */
 export async function contasDisponiveis(token: string): Promise<ContaIg[]> {
-  const r = await json<{ data?: { id: string; name: string; instagram_business_account?: { id: string; username?: string } }[] }>(
-    `https://graph.facebook.com/${V}/me/accounts?${form({ fields: "id,name,instagram_business_account{id,username}", limit: "50", access_token: token })}`, undefined, "Meta: contas");
-  return (r.data ?? []).filter((p) => p.instagram_business_account).map((p) => ({ pageId: p.id, pageNome: p.name, igUserId: p.instagram_business_account!.id, igUsuario: p.instagram_business_account!.username ?? p.name }));
+  const r = await json<{ data?: { id: string; name: string; instagram_business_account?: { id: string; username?: string }; access_token?: string }[] }>(
+    `https://graph.facebook.com/${V}/me/accounts?${form({ fields: "id,name,access_token,instagram_business_account{id,username}", limit: "50", access_token: token })}`, undefined, "Meta: contas");
+  return (r.data ?? []).filter((p) => p.instagram_business_account).map((p) => ({ pageId: p.id, pageNome: p.name, igUserId: p.instagram_business_account!.id, igUsuario: p.instagram_business_account!.username ?? p.name, pageToken: p.access_token }));
 }
 
 /** Troca o código por um token de longa duração (cerca de 60 dias) e lista as contas de Instagram disponíveis. */

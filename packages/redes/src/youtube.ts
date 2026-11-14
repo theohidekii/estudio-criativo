@@ -2,7 +2,7 @@
 import { form, json, POST_FORM } from "./http";
 import { type Coletada, type ConfigApp, type MetricasRemotas, type Tokens, vazias } from "./tipos";
 
-export const ESCOPOS_YT = "https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly";
+export const ESCOPOS_YT = "https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/youtube.upload";
 
 export const urlAutorizacao = (c: ConfigApp, redirectUri: string, state: string) =>
   `https://accounts.google.com/o/oauth2/v2/auth?${form({ client_id: c.clientId, redirect_uri: redirectUri, response_type: "code", scope: ESCOPOS_YT, access_type: "offline", prompt: "consent", state })}`;

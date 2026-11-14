@@ -37,7 +37,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ rede: string }>
     const { tokens, contas } = await instagram.trocarCodigo(app, redirect, code);
     if (contas.length === 0) return fim("erro", "Nenhuma conta de Instagram profissional ligada a uma Página do Facebook foi encontrada.");
     for (const c of contas) {
-      criarConta(perfil, "instagram", `@${c.igUsuario}`, tokens, { igUserId: c.igUserId, pageId: c.pageId, pageNome: c.pageNome }, c.igUserId);
+      criarConta(perfil, "instagram", `@${c.igUsuario}`, tokens, { igUserId: c.igUserId, pageId: c.pageId, pageNome: c.pageNome, ...(c.pageToken ? { pageToken: c.pageToken } : {}) }, c.igUserId);
       criarConta(perfil, "facebook", c.pageNome, tokens, { pageId: c.pageId }, c.pageId);
     }
     return fim("ok", `${contas.length} conta(s) do Instagram e as Páginas ligadas foram conectadas.`);

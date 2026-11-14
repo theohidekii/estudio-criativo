@@ -2,7 +2,7 @@
 import { form, json, POST_FORM } from "./http";
 import { type Coletada, type ConfigApp, type Tokens, vazias } from "./tipos";
 
-export const ESCOPOS_TT = "user.info.basic,video.list";
+export const ESCOPOS_TT = "user.info.basic,video.list,video.upload";
 export const urlAutorizacao = (c: ConfigApp, redirectUri: string, state: string) =>
   `https://www.tiktok.com/v2/auth/authorize/?${form({ client_key: c.clientId, scope: ESCOPOS_TT, response_type: "code", redirect_uri: redirectUri, state })}`;
 
