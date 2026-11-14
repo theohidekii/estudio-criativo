@@ -1,0 +1,13 @@
+{
+  "name": "estudio-criativo",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "npm run dev -w @estudio/web",
+    "build": "npm run build -w @estudio/web",
+    "db:gerar": "npm run gerar -w @estudio/db",
+    "db:migrar": "npm run migrar -w @estudio/db",
+    "video:studio": "npm run dev -w @estudio/video",
+    "test": "npm test -w @estudio/db"
+  }
+}
