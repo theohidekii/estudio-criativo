@@ -113,3 +113,26 @@ export const AMOSTRA_CINEMA: Cenas = {
       textos: [], objetos: [{ tipo: "despertador", x: 840, y: 860, tamanho: 180, flutua: true }, { tipo: "livro", x: 220, y: 900, tamanho: 170, rotacao: -20, flutua: true }], zoom: [1, 1.1] },
   ],
 };
+
+const falaD = "Para vender mais, o café precisou de um caminho. Primeiro, o cliente vê o cardápio. Depois, faz o pedido na tela. Por fim, a venda entra no caixa.";
+const palavrasD = falaD.split(" ").map((w, i) => ({ w, s: i * 0.46, e: i * 0.46 + 0.4 }));
+const DONO = { id: "dono", camisa: "#f08a2c", calca: "#2c3a66", cabelo: "#3a2a20", pele: "#e8b88c" };
+const CLIENTE = { id: "cliente", camisa: "#4a8fe0", calca: "#3b3f52", cabelo: "#2a1a10", pele: "#d9a577" };
+
+export const AMOSTRA_3D: Cenas = {
+  duracao: 14,
+  estilo: "natan-3d",
+  legendas: montarLegendas(palavrasD, 1, 99),
+  cenas: [
+    { inicio: 0, cenario: { tipo: "cor" }, estacao: 0, plano: "medio", personagens: [], textos: [],
+      personagens3d: [{ ...DONO, estacao: 0, dx: -0.6, dz: 0.4, acao: "acenar" }],
+      objetos3d: [{ tipo: "placa", estacao: 0, dx: 0.9, dz: -0.2, cor: "#f4c542" }], etiquetas3d: [{ texto: "CARDÁPIO", estacao: 0, dx: 0.9, dz: -0.2, altura: 2.9 }] },
+    { inicio: 4.2, cenario: { tipo: "cor" }, estacao: 1, plano: "medio", personagens: [], textos: [],
+      personagens3d: [{ ...CLIENTE, estacao: 1, dx: -0.8, dz: 0.8, acao: "parado" }],
+      objetos3d: [{ tipo: "mesa", estacao: 1, dx: 0.5, dz: -0.3 }, { tipo: "tela", estacao: 1, dx: 0.5, dz: -0.3, aparece: 0.5 }], etiquetas3d: [{ texto: "PEDIDO NA TELA", estacao: 1, dx: 0.5, dz: -0.3, altura: 3.4, aparece: 0.6 }] },
+    { inicio: 8.6, cenario: { tipo: "cor" }, estacao: 2, plano: "medio", personagens: [], textos: [],
+      personagens3d: [{ ...DONO, estacao: 2, dx: -0.7, dz: 0.5, acao: "comemorar" }],
+      objetos3d: [{ tipo: "cofre", estacao: 2, dx: 0.7, dz: -0.2 }, { tipo: "moeda", estacao: 2, dx: -0.3, dz: -0.8, aparece: 0.6 }], etiquetas3d: [{ texto: "VENDA NO CAIXA", estacao: 2, dx: 0.7, dz: -0.2, altura: 2.6, aparece: 0.6 }] },
+    { inicio: 11.6, cenario: { tipo: "cor" }, estacao: 2, plano: "aberto", personagens: [], textos: [], fecho: { titulo: "PARABÉNS!", texto: "Você construiu um caminho de vendas", destaque: "caminho de vendas" } },
+  ],
+};

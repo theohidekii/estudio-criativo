@@ -3,7 +3,9 @@ export const EXPRESSOES = ["neutral", "stern", "grin", "laugh", "whistle", "nerv
 export const CENARIOS = ["sala", "parque", "escuro", "cor", "chapado", "rua", "quarto", "deserto", "colinas", "noite", "templo", "pergaminho", "cozinha"] as const;
 export const OBJETOS = ["ovo", "lata", "celular", "controle", "despertador", "nota", "copo", "livro"] as const;
 export const ICONES = ["cruz", "coracao", "estrela", "sol", "coroa", "ovni", "olho", "cerebro", "lampada", "relogio", "seta", "interrogacao", "circulo"] as const;
-export const ESTILOS = ["classico", "volta-por-cima", "biblia-animada", "mundo-oculto", "matrixxtz-2d"] as const;
+export const ESTILOS = ["classico", "volta-por-cima", "biblia-animada", "mundo-oculto", "matrixxtz-2d", "natan-3d"] as const;
+export const OBJETOS3D = ["quadro", "tela", "moeda", "porta", "chave", "mesa", "placa", "arvore", "cadeado", "cofre", "bandeira", "caixa"] as const;
+export const ACOES3D = ["parado", "andar", "acenar", "comemorar"] as const;
 export const CORES_BARRA = ["vermelho", "verde", "azul", "amarelo"] as const;
 
 export type Estilo = (typeof ESTILOS)[number];
@@ -16,6 +18,10 @@ export type Hud = { titulo: string; numero: number; barras: Barra[] };
 export type Celular = { x: number; y: number; largura: number; titulo: string; tipo: "chat" | "pix"; linhas: { de: "eu" | "ele"; texto: string }[]; aparece?: number };
 export type Icone = { tipo: (typeof ICONES)[number]; x: number; y: number; tamanho: number; aparece?: number; destaque?: boolean };
 export type Objeto = { tipo: (typeof OBJETOS)[number]; x: number; y: number; tamanho: number; rotacao?: number; flutua?: boolean; aparece?: number };
+export type Personagem3D = { id: string; camisa: string; calca?: string; cabelo?: string; pele?: string; estacao?: number; dx: number; dz: number; acao?: (typeof ACOES3D)[number] };
+export type Objeto3D = { tipo: (typeof OBJETOS3D)[number]; estacao: number; dx: number; dz: number; escala?: number; cor?: string; rotacao?: number; aparece?: number };
+export type Etiqueta3D = { texto: string; estacao: number; dx: number; dz: number; altura: number; aparece?: number };
+export type Fecho = { titulo: string; texto: string; destaque?: string };
 export type Legenda = { inicio: number; fim: number; texto: string };
 export type Cena = {
   inicio: number; // segundos desde o começo do vídeo
@@ -25,6 +31,13 @@ export type Cena = {
   adesivos?: Adesivo[];
   celular?: Celular;
   referencia?: string; // citação bíblica, ex.: "Gênesis 6:14"
+  // estilo 3D: a câmera visita "estações" (hexágonos) numa trilha; objetos e personagens se acumulam ao longo das cenas
+  estacao?: number;
+  plano?: "aberto" | "medio" | "close";
+  personagens3d?: Personagem3D[];
+  objetos3d?: Objeto3D[];
+  etiquetas3d?: Etiqueta3D[];
+  fecho?: Fecho;
   objetos?: Objeto[]; // objetos de cena (ovo, lata, celular...), com opção de flutuar
   desfoque?: number; // desfoque do fundo em px (profundidade de campo)
   origem?: [number, number]; // ponto do zoom em % da tela (close-up)
@@ -73,7 +86,8 @@ export function validarCenas(bruto: unknown, duracao: number): Cenas {
   const estilo: Estilo = ESTILOS.includes(o.estilo as Estilo) ? (o.estilo as Estilo) : "classico";
   const cenas: Cena[] = o.cenas.map((c: any, i: number) => {
     const p = `cena ${i + 1}`;
-    if (!CENARIOS.includes(c?.cenario?.tipo)) throw new Error(`${p}: cenario.tipo deve ser ${CENARIOS.join(", ")}`);
+    c.cenario = { ...(c.cenario ?? {}), tipo: c?.cenario?.tipo ?? "cor" };
+    if (!CENARIOS.includes(c.cenario.tipo)) throw new Error(`${p}: cenario.tipo deve ser ${CENARIOS.join(", ")}`);
     const personagens: Personagem[] = (c.personagens ?? []).slice(0, 6).map((q: any, j: number) => {
       if (!EXPRESSOES.includes(q?.expr)) throw new Error(`${p} personagem ${j + 1}: expr inválida (${EXPRESSOES.join(", ")})`);
       const r = q.roupa ?? {};
@@ -104,6 +118,23 @@ export function validarCenas(bruto: unknown, duracao: number): Cenas {
       if (!OBJETOS.includes(o?.tipo)) throw new Error(`${p} objeto ${j + 1}: tipo deve ser ${OBJETOS.join(", ")}`);
       return { tipo: o.tipo, x: num(o.x, -100, 1180, `${p} objeto x`), y: num(o.y, 0, 2000, `${p} objeto y`), tamanho: Math.max(60, Math.min(700, num(o.tamanho, 0, 5000, `${p} objeto tamanho`))), rotacao: Number.isFinite(o.rotacao) ? Math.max(-180, Math.min(180, o.rotacao)) : 0, flutua: !!o.flutua, aparece: Number.isFinite(o.aparece) ? Math.max(0, o.aparece) : 0 };
     });
+    const e3 = (v: unknown, nome: string) => num(v, 0, 14, nome);
+    const personagens3d: Personagem3D[] = (c.personagens3d ?? []).slice(0, 5).map((q: any, j: number) => ({
+      id: txt(String(q?.id ?? `p${j}`), 20, `${p} personagem3d id`), camisa: cor(q?.camisa, `${p} personagem3d camisa`), calca: q?.calca ? cor(q.calca, "calca") : "#2c3a66",
+      cabelo: q?.cabelo ? cor(q.cabelo, "cabelo") : "#3a2a20", pele: q?.pele ? cor(q.pele, "pele") : "#e8b88c",
+      estacao: q?.estacao === undefined ? undefined : e3(q.estacao, `${p} personagem3d estacao`), dx: Math.max(-1.8, Math.min(1.8, num(q?.dx ?? 0, -50, 50, `${p} personagem3d dx`))), dz: Math.max(-1.8, Math.min(1.8, num(q?.dz ?? 0, -50, 50, `${p} personagem3d dz`))),
+      acao: ACOES3D.includes(q?.acao) ? q.acao : "parado",
+    }));
+    const objetos3d: Objeto3D[] = (c.objetos3d ?? []).slice(0, 8).map((o: any, j: number) => {
+      if (!OBJETOS3D.includes(o?.tipo)) throw new Error(`${p} objeto3d ${j + 1}: tipo deve ser ${OBJETOS3D.join(", ")}`);
+      return { tipo: o.tipo, estacao: e3(o.estacao ?? c.estacao ?? 0, `${p} objeto3d estacao`), dx: Math.max(-2, Math.min(2, num(o.dx ?? 0, -50, 50, `${p} objeto3d dx`))), dz: Math.max(-2, Math.min(2, num(o.dz ?? 0, -50, 50, `${p} objeto3d dz`))),
+        escala: Math.max(0.4, Math.min(1.5, Number.isFinite(o.escala) ? o.escala : 1)), cor: o.cor ? cor(o.cor, `${p} objeto3d cor`) : undefined, rotacao: Number.isFinite(o.rotacao) ? o.rotacao : 0, aparece: Number.isFinite(o.aparece) ? Math.max(0, o.aparece) : 0 };
+    });
+    const etiquetas3d: Etiqueta3D[] = (c.etiquetas3d ?? []).slice(0, 5).map((t: any, j: number) => ({
+      texto: txt(t?.texto, 34, `${p} etiqueta3d ${j + 1}`), estacao: e3(t.estacao ?? c.estacao ?? 0, `${p} etiqueta3d estacao`), dx: Math.max(-2.4, Math.min(2.4, num(t.dx ?? 0, -50, 50, `${p} etiqueta3d dx`))), dz: Math.max(-2.4, Math.min(2.4, num(t.dz ?? 0, -50, 50, `${p} etiqueta3d dz`))),
+      altura: Math.max(0.3, Math.min(4.5, Number.isFinite(t.altura) ? t.altura : 2)), aparece: Number.isFinite(t.aparece) ? Math.max(0, t.aparece) : 0,
+    }));
+    const fecho: Fecho | undefined = c.fecho ? { titulo: txt(c.fecho.titulo, 24, `${p} fecho titulo`), texto: txt(c.fecho.texto, 80, `${p} fecho texto`), destaque: typeof c.fecho.destaque === "string" ? c.fecho.destaque.slice(0, 40) : undefined } : undefined;
     const referencia = typeof c.referencia === "string" && c.referencia.trim() ? txt(c.referencia, 40, `${p} referencia`) : undefined;
     let celular: Celular | undefined;
     if (c.celular) {
@@ -132,7 +163,8 @@ export function validarCenas(bruto: unknown, duracao: number): Cenas {
     return {
       inicio: num(c.inicio, 0, duracao, `${p} inicio`),
       cenario: { tipo: c.cenario.tipo, cor: c.cenario.cor ? cor(c.cenario.cor, "cenario.cor") : undefined, piso: c.cenario.piso ? cor(c.cenario.piso, "cenario.piso") : undefined, raios: !!c.cenario.raios },
-      personagens, textos, adesivos, celular, hud, icones, referencia, objetos,
+      personagens, textos, adesivos, celular, hud, icones, referencia, objetos, personagens3d, objetos3d, etiquetas3d, fecho,
+      estacao: c.estacao === undefined ? undefined : e3(c.estacao, `${p} estacao`), plano: ["aberto", "medio", "close"].includes(c.plano) ? c.plano : undefined,
       desfoque: Number.isFinite(c.desfoque) ? Math.max(0, Math.min(14, c.desfoque)) : undefined,
       origem: Array.isArray(c.origem) && c.origem.length === 2 ? [Math.max(0, Math.min(100, Number(c.origem[0]) || 50)), Math.max(0, Math.min(100, Number(c.origem[1]) || 50))] : undefined,
       zoom: Array.isArray(c.zoom) && c.zoom.length === 2 ? [num(c.zoom[0], 0.8, 1.6, "zoom"), num(c.zoom[1], 0.8, 1.6, "zoom")] : undefined,
@@ -153,6 +185,7 @@ export function legendasDoEstilo(estilo: Estilo, palavras: { w: string; s: numbe
   if (estilo === "classico") return undefined;
   if (estilo === "mundo-oculto") return montarLegendas(palavras, 6, 34, false);
   if (estilo === "matrixxtz-2d") return montarLegendas(palavras, 4, 24);
+  if (estilo === "natan-3d") return montarLegendas(palavras, 1, 99);
   return montarLegendas(palavras, 3);
 }
 

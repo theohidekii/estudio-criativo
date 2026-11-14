@@ -139,3 +139,17 @@ Pacote visual em `packages/video/src/generic/matrixxtz.tsx`; exemplo (telecinese
 - **IA:** prompt com a gramática do estilo (cenas de 1,8 a 3 s, gancho hipotético, closes alternados com planos abertos, cores quentes), sem personagens sentados e com fidelidade ao roteiro.
 - Testado de ponta a ponta com Claude real: JSON válido (16 cenas, 9 closes, 5 objetos flutuando) e render pelo sistema (MP4 de 10,3 s, 1080x1920). Narração simulada nesse teste.
 - Limites: o contorno escuro dos personagens do motor é mais pesado que no canal de referência; "sentado" não tem sofá, então foi desaconselhado no prompt; a fonte vem do Google no momento do render (precisa de internet); sem trilha nem efeitos sonoros; o áudio não foi ouvido.
+
+---
+
+# Estilo implementado: Natan Madeira 3D
+
+Pacote visual em `packages/video/src/generic/diorama.tsx` (three.js via `@remotion/three` e react-three-fiber); exemplo (um café montando um caminho de vendas, em palavras próprias) em `amostras.ts`.
+
+- **Diorama:** trilha de hexágonos em zigue-zague, vista de cima, sobre campo verde com árvores e nuvens de poucos polígonos. Cada etapa da explicação é uma **estação**.
+- **Câmera que segue a ação:** voa suavemente (0,9 s) entre estações, com três planos (`aberto`, `medio`, `close`) e push-in lento; sem cortes duros.
+- **Personagens de bloco sem rosto**, que **andam** de uma estação à outra (pernas e braços balançando), acenam e comemoram. Objetos (quadro, tela, moeda, porta, chave, mesa, placa, árvore, cadeado, cofre, bandeira, caixa) aparecem com um "pop" e ficam: o diorama acumula.
+- **Texto:** etiquetas em pílula branca com ponto verde presas aos objetos (projetadas com a mesma câmera do canvas), legenda **uma palavra por vez** e cartão final **"PARABÉNS!"** com trecho em amarelo.
+- **IA:** prompt que transforma um processo em percurso (uma estação por etapa), com regra de fidelidade ao roteiro.
+- Testado com Claude real (6 estações, 3 planos, fecho), render do sistema (MP4 de 14,9 s, 1080x1920; 14 s de amostra em 30 s) e **dentro do navegador** (galeria e editor, Player com WebGL).
+- Limites: sem sombras nem acabamento (iluminação simples, sem contorno), então fica mais "cru" que o canal de referência; duas etiquetas próximas podem se sobrepor; personagens e objetos são primitivos de caixa; sem trilha nem efeitos sonoros; narração simulada no teste, áudio não ouvido.

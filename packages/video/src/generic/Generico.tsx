@@ -6,6 +6,7 @@ import { INK, Outfit } from "../videos/bridge/toon";
 import { Cam, Room, Tag, Toon } from "../videos/milgram/Milgram";
 import type { Cena, Cenas, Roupa, Texto } from "./tipos";
 import { CenarioBiblia, FaixaBiblia, IconeBiblia, LegendaBiblia, ReferenciaBiblia, SeloBiblia } from "./biblia";
+import { Diorama } from "./diorama";
 import { CenarioCinema, LegendaCinema, ObjetoCinema } from "./matrixxtz";
 import { AnotacaoMundo, CenarioMundo, FiltrosMundo, IconeGiz, LegendaMundo } from "./mundo";
 import { AdesivoVPC, CelularVPC, CenarioVPC, HudVPC, LegendaVPC, Pilula, Titulo, hudDaCena } from "./vpc";
@@ -45,6 +46,7 @@ export const Generico: React.FC<GenericoProps> = ({ cenas, audio }) => {
   const fim = cenas.duracao;
   const fade = interpolate(f, [Math.round(fim * FPS) - 15, Math.round(fim * FPS)], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const src = audio ? (/^(https?:)?\//.test(audio) ? audio : staticFile(audio)) : undefined;
+  if (cenas.estilo === "natan-3d") return <Diorama cenas={cenas} audio={audio} />;
   const vpc = cenas.estilo === "volta-por-cima";
   const personagens = c.personagens.map((p, j) => (
     <Toon key={`${i}-${j}`} o={paraOutfit(p.roupa)} expr={p.expr} seed={p.seed ?? j + 1} h={p.altura} x={p.x} y={p.y} mode={p.modo} flip={p.flip} />

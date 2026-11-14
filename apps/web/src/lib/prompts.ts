@@ -121,7 +121,25 @@ Regras de layout (tela vertical 1080x1920):
 - No máximo 2 personagens por cena; com 2, use x 330 e 750 e altura 800 a 880. Não use "modo": "sit". Cada cena precisa de pelo menos 1 personagem ou 1 objeto grande (close).
 - Humor leve e acolhedor. Mantenha-se fiel ao roteiro: não invente fatos, números ou nomes.`;
 
-const esquemaDo = (estilo: string) => (estilo === "volta-por-cima" ? ESQUEMA_VPC : estilo === "biblia-animada" ? ESQUEMA_BIBLIA : estilo === "mundo-oculto" ? ESQUEMA_MUNDO : estilo === "matrixxtz-2d" ? ESQUEMA_CINEMA : ESQUEMA_CENAS);
+const ESQUEMA_3D = `Responda SOMENTE com JSON válido (sem markdown, sem comentários) no estilo "Natan Madeira 3D": explica um processo ou conceito como um percurso em um diorama 3D de poucos polígonos, visto de cima. A câmera visita "estações" (hexágonos numa trilha), uma por etapa da explicação.
+{"duracao": <segundos>, "estilo": "natan-3d",
+ "cenas": [{
+  "inicio": <segundos, a primeira é 0>,
+  "estacao": 0-9 (número da estação que a câmera visita; use 0, 1, 2... em ordem, uma por etapa),
+  "plano": "aberto"|"medio"|"close",
+  "personagens3d": [{"id": "dono", "camisa": "#rrggbb", "calca": "#rrggbb", "cabelo": "#rrggbb", "pele": "#rrggbb", "estacao": 0-9, "dx": -1.5..1.5, "dz": -1.5..1.5, "acao": "parado"|"andar"|"acenar"|"comemorar"}],
+  "objetos3d": [{"tipo": "quadro"|"tela"|"moeda"|"porta"|"chave"|"mesa"|"placa"|"arvore"|"cadeado"|"cofre"|"bandeira"|"caixa", "estacao": 0-9, "dx": -1.6..1.6, "dz": -1.6..1.6, "escala": 0.8-1.6, "cor": "#rrggbb" (opcional), "rotacao": 0-360, "aparece": <segundos dentro da cena>}],
+  "etiquetas3d": [{"texto": "NOME CURTO", "estacao": 0-9, "dx": -1.6..1.6, "dz": -1.6..1.6, "altura": 2.2-3.6, "aparece": <segundos dentro da cena>}],
+  "fecho": {"titulo": "PARABÉNS!", "texto": "Você construiu um ...", "destaque": "trecho do texto em amarelo"} }]}
+O sistema mostra sozinho a LEGENDA, uma palavra por vez, a partir da narração; não escreva legendas.
+Linguagem do estilo:
+- Cada etapa do processo vira uma estação. Objetos e personagens ficam no diorama ao longo do vídeo (acumulam). Personagens podem ir de uma estação à outra: cite o mesmo "id" na cena seguinte com a nova "estacao" e "dx/dz" para ele andar até lá.
+- Uma etiqueta em pílula por objeto importante (máx. 3 palavras, maiúsculas, ex.: "PÁGINA DE VENDAS"). "dx/dz" da etiqueta = o do objeto; "altura" acima do objeto (placa 2.9, tela 3.4, cofre 2.4, porta 2.8).
+- Cada cena dura de 3 a 6 s. Entre 6 e 12 cenas. Comece no plano "medio" na estação 0, use "aberto" para mostrar o caminho percorrido e "close" para um detalhe. A última cena é o fecho "PARABÉNS!" no plano "aberto", na última estação.
+- Posicione objetos e personagens dentro do hexágono (|dx| e |dz| até 1.6) sem sobrepor: cada elemento num canto diferente. No máximo 3 objetos e 2 personagens por estação.
+- Roupas em cores vivas e diferentes entre personagens. Fidelidade ao roteiro: não invente números nem etapas.`;
+
+const esquemaDo = (estilo: string) => (estilo === "volta-por-cima" ? ESQUEMA_VPC : estilo === "biblia-animada" ? ESQUEMA_BIBLIA : estilo === "mundo-oculto" ? ESQUEMA_MUNDO : estilo === "matrixxtz-2d" ? ESQUEMA_CINEMA : estilo === "natan-3d" ? ESQUEMA_3D : ESQUEMA_CENAS);
 
 export const pedidoCenas = (roteiro: string, palavras: { w: string; s: number }[], duracao: number, estilo = "classico") =>
   `${esquemaDo(estilo)}
