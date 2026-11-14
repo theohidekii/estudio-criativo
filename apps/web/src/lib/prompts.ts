@@ -24,6 +24,40 @@ ${pesquisa || "(sem pesquisa; avise que os fatos precisam ser verificados)"}
 ${texto ? `Rascunho atual para melhorar:\n${texto}` : ""}
 Responda só com o roteiro.`;
 
-export const pedidoIdeias =(obs: string) =>
+const ESQUEMA_CENAS = `Responda SOMENTE com JSON válido (sem markdown, sem comentários) neste formato:
+{"duracao": <segundos>, "cenas": [{
+  "inicio": <segundos, a primeira é 0>,
+  "cenario": {"tipo": "sala"|"parque"|"escuro"|"cor", "cor": "#rrggbb" (opcional), "piso": "#rrggbb" (opcional)},
+  "personagens": [{"x": 0-1080, "y": 1400-1600 (altura dos pés), "altura": 800-1200, "expr": "neutral|stern|grin|laugh|whistle|nervous|shock|relief|dazed|pained|smile|smile_closed", "flip": false, "seed": 1,
+     "roupa": {"jacket": "#rrggbb", "pants": "#rrggbb", "hat": "hair"|"cap", "hair": "#rrggbb", "cap": "#rrggbb", "skin": "#rrggbb", "glasses": false}}],
+  "textos": [{"texto": "...", "x": 540, "y": 150-1700, "tamanho": 60-110, "cor": "#rrggbb", "estilo": "grande"|"etiqueta", "aparece": <segundos dentro da cena>}],
+  "zoom": [1, 1.1], "flash": false }]}
+Regras de layout (tela vertical 1080x1920):
+- Troque de cena a cada 2 a 4 segundos, sempre no início de uma frase ou de uma palavra-chave da narração (use os tempos fornecidos). Entre 12 e 22 cenas.
+- Etiqueta: no máximo 22 caracteres. Texto grande: tamanho até 90 e no máximo 2 linhas (cerca de 16 caracteres por linha). Nunca coloque dois textos a menos de 200 px de distância vertical.
+- No máximo 3 personagens por cena; com 2 ou 3, espalhe o x (ex.: 270, 540, 810) e reduza a altura (600 a 800). Mantenha os mesmos personagens com a mesma roupa em todo o vídeo.
+- Mostre só o que a narração diz. Tom sério quando o tema for crime ou tragédia: sem violência, sem sangue, sem humor.
+- Use "escuro" para momentos de tensão e conclusão, "parque" para ambientes externos, "sala" para ambientes internos.`;
+
+export const pedidoCenas = (roteiro: string, palavras: { w: string; s: number }[], duracao: number) =>
+  `${ESQUEMA_CENAS}
+
+Duração total: ${duracao.toFixed(1)} segundos.
+Narração (linha por linha):
+${roteiro}
+
+Tempo em que cada palavra é falada (segundos):
+${palavras.map((p) => `${p.s.toFixed(2)} ${p.w}`).join(" | ")}`;
+
+export const pedidoAjuste = (cenasJson: string, instrucao: string, duracao: number) =>
+  `${ESQUEMA_CENAS}
+
+Aplique este ajuste ao vídeo e devolva o JSON COMPLETO atualizado (mantenha tudo que não foi pedido para mudar).
+Duração total: ${duracao.toFixed(1)} segundos.
+Ajuste pedido: ${instrucao}
+JSON atual:
+${cenasJson}`;
+
+export const pedidoIdeias = (obs: string) =>
   `Gere 8 ideias de vídeo para este perfil. Para cada uma: título, gancho de abertura (1 frase) e por que funciona.` +
   (obs ? `\nObservações da equipe: ${obs}` : "");

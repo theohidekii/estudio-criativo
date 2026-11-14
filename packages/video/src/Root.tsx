@@ -8,6 +8,8 @@ import { TempoP1, TEMPO_FRAMES } from "./videos/milgram/Tempo";
 import { MarshallP1, MARSHALL_FRAMES } from "./videos/milgram/Marshall";
 import { ManiacoP1, MANIACO_FRAMES } from "./videos/milgram/Maniaco";
 import { DanielP1, DANIEL_FRAMES } from "./videos/milgram/Daniel";
+import { Generico } from "./generic/Generico";
+import type { Cenas } from "./generic/tipos";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -35,6 +37,16 @@ export const RemotionRoot: React.FC = () => {
       <Composition id="MarshallP1" component={MarshallP1} durationInFrames={MARSHALL_FRAMES} fps={30} width={1080} height={1920} />
       <Composition id="ManiacoP1" component={ManiacoP1} durationInFrames={MANIACO_FRAMES} fps={30} width={1080} height={1920} />
       <Composition id="DanielP1" component={DanielP1} durationInFrames={DANIEL_FRAMES} fps={30} width={1080} height={1920} />
+      <Composition
+        id="Generico"
+        component={Generico}
+        durationInFrames={900}
+        fps={30}
+        width={1080}
+        height={1920}
+        defaultProps={{ cenas: { duracao: 30, cenas: [{ inicio: 0, cenario: { tipo: "escuro" }, personagens: [], textos: [{ texto: "Exemplo", x: 540, y: 800, tamanho: 120, estilo: "grande" }] }] } as Cenas, audio: undefined as string | undefined }}
+        calculateMetadata={({ props }) => ({ durationInFrames: Math.max(30, Math.round(props.cenas.duracao * 30)) })}
+      />
     </>
   );
 };

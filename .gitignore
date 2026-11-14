@@ -9,3 +9,4 @@ storage/
 .next/
 *.tsbuildinfo
 next-env.d.ts
+packages/video/public/gen/

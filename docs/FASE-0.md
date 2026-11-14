@@ -36,3 +36,12 @@ Uso: em `/agentes` gere o token e rode `npm run agente -- --servidor http://loca
 - Página **Vozes**: importa as vozes da conta (inclui Lucas e a Markel clonada), toca a amostra da ElevenLabs, gera amostra em pt-BR (guardada em `storage/amostras`, gasta créditos só na 1ª vez), ajusta estabilidade (0 / 0.5 / 1, exigência do eleven_v3) e velocidade, e define a voz padrão de cada perfil.
 - **Clonar voz** por upload de áudio, com caixa de autorização obrigatória. Não testado (consome vaga de voz e exige plano com clonagem).
 - A velocidade é guardada, mas aplicada depois, na etapa de geração do vídeo (como no `--speed` do script atual).
+
+## Fase 1 — etapa 4: estúdio de vídeo
+
+Fluxo: roteiro → **narração** (ElevenLabs com tempos por palavra; velocidade aplicada com ffmpeg) → **cenas** (Claude/Sonnet gera um JSON validado) → **pré-visualização** no navegador (Remotion Player) → **editor simples** (textos, tempos, expressões) ou aba **Código** (JSON) → **pedido de ajuste** à IA → **render MP4** (Remotion CLI) → **versões** v1, v2, v3.
+
+- Composição `Generico` (`packages/video/src/generic`): desenha o vídeo a partir do JSON (cenário, até 3 personagens com o motor toon, textos, zoom). O formato e a validação ficam em `tipos.ts`, usados pelo servidor e pelo navegador.
+- Testado de ponta a ponta com a ElevenLabs e o Claude reais: narração de 9,8 s, 7 cenas válidas, render 1080x1920 com áudio.
+- Limites atuais: o visual dos vídeos gerados é bem mais simples que os feitos à mão (Maníaco, Daniel); ainda não há efeitos sonoros nem trilha, corte de pausas, nem legenda palavra a palavra. Vídeos antigos continuam como composições próprias do Remotion.
+- Correções do teste: `<form>` dentro de `<p>` (hidratação) e caminhos com espaço no `remotion render` no Windows.

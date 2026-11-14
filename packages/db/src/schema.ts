@@ -124,3 +124,27 @@ export const vozes = sqliteTable("vozes", {
   velocidade: real("velocidade").notNull().default(1),
   criadoEm: criadoEm(),
 });
+
+export const videos = sqliteTable("videos", {
+  id: id(),
+  roteiroId: integer("roteiro_id").notNull().references(() => roteiros.id, { onDelete: "cascade" }),
+  titulo: text("titulo").notNull(),
+  formato: text("formato", { enum: ["vertical", "horizontal"] }).notNull().default("vertical"),
+  criadoEm: criadoEm(),
+});
+
+/** Cada geração/ajuste do vídeo vira uma versão (v1, v2, v3…). */
+export const versoesVideo = sqliteTable("versoes_video", {
+  id: id(),
+  videoId: integer("video_id").notNull().references(() => videos.id, { onDelete: "cascade" }),
+  numero: integer("numero").notNull(),
+  status: text("status", { enum: ["rascunho", "voz_pronta", "cenas_prontas", "renderizando", "pronto", "erro"] }).notNull().default("rascunho"),
+  vozIdExterno: text("voz_id_externo"),
+  palavras: text("palavras").notNull().default("[]"), // [{w, s, e}] em segundos
+  duracao: real("duracao"),
+  cenas: text("cenas"), // JSON validado (packages/video/src/generic/tipos.ts)
+  arquivoVoz: text("arquivo_voz"),
+  arquivoVideo: text("arquivo_video"),
+  erro: text("erro"),
+  criadoEm: criadoEm(),
+});

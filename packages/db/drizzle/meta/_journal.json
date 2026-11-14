@@ -29,6 +29,13 @@
       "when": 1794655794166,
       "tag": "0003_colossal_misty_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1794656087792,
+      "tag": "0004_gigantic_warlock",
+      "breakpoints": true
     }
   ]
 }

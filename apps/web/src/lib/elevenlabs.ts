@@ -44,3 +44,27 @@ export async function clonarVoz(nome: string, descricao: string, arquivos: File[
   const r = await chamar("/v1/voices/add", { method: "POST", body: fd });
   return ((await r.json()) as { voice_id: string }).voice_id;
 }
+
+export type Palavra = { w: string; s: number; e: number };
+
+/** Narração com tempos: devolve o mp3 e cada palavra com início/fim em segundos. */
+export async function narrarComTempos(vozId: string, texto: string, estabilidade = 0.5): Promise<{ mp3: Buffer; palavras: Palavra[] }> {
+  const r = await chamar(`/v1/text-to-speech/${encodeURIComponent(vozId)}/with-timestamps?output_format=mp3_44100_128`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ text: texto, model_id: "eleven_v3", voice_settings: { stability: estabilidade } }),
+  });
+  const j = (await r.json()) as { audio_base64: string; alignment?: { characters: string[]; character_start_times_seconds: number[]; character_end_times_seconds: number[] } };
+  if (!j.alignment) throw new Error("a ElevenLabs não devolveu os tempos das palavras");
+  const { characters: ch, character_start_times_seconds: ini, character_end_times_seconds: fim } = j.alignment;
+  const palavras: Palavra[] = [];
+  let w = "", s = 0, e = 0;
+  const fecha = () => { if (w) palavras.push({ w, s, e }); w = ""; };
+  ch.forEach((c, i) => {
+    if (/\s/.test(c)) return fecha();
+    if (!w) s = ini[i];
+    w += c; e = fim[i];
+  });
+  fecha();
+  return { mp3: Buffer.from(j.audio_base64, "base64"), palavras };
+}
