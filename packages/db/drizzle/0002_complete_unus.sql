@@ -1,0 +1,1 @@
+ALTER TABLE `roteiros` ADD `pesquisa` text DEFAULT '' NOT NULL;

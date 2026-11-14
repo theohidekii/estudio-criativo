@@ -15,6 +15,13 @@
       "when": 1794654097113,
       "tag": "0001_wandering_rage",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794655022999,
+      "tag": "0002_complete_unus",
+      "breakpoints": true
     }
   ]
 }

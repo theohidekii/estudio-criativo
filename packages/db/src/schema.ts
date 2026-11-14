@@ -48,6 +48,7 @@ export const roteiros = sqliteTable("roteiros", {
   serieId: integer("serie_id").references(() => series.id, { onDelete: "set null" }),
   titulo: text("titulo").notNull(),
   texto: text("texto").notNull().default(""),
+  pesquisa: text("pesquisa").notNull().default(""),
   etapa: text("etapa", { enum: ["ideia", "rascunho", "aprovado", "gravado", "publicado"] })
     .notNull()
     .default("ideia"),

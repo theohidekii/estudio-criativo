@@ -21,9 +21,16 @@ if (!token) {
 const modelos = { haiku: "haiku", sonnet: "sonnet" };
 
 /** Roda `claude -p` sem ferramentas (só gera texto) e devolve a resposta. */
-function executarClaude(prompt, modelo) {
+const FERRAMENTAS_OK = new Set(["WebSearch", "WebFetch"]); // só leitura da web; nunca arquivos nem comandos
+
+function executarClaude(prompt, modelo, ferramentas = []) {
   return new Promise((resolve, reject) => {
-    const args = comando === "claude" ? ["-p", "--model", modelos[modelo] ?? "haiku", "--tools", ""] : [];
+    const ok = ferramentas.filter((f) => FERRAMENTAS_OK.has(f)).join(",");
+    // No Windows o spawn usa shell (claude é um .cmd) e um argumento vazio se perderia: precisa de aspas literais.
+    const vazio = process.platform === "win32" ? '""' : "";
+    const args = comando === "claude"
+      ? ["-p", "--model", modelos[modelo] ?? "haiku", "--tools", ok || vazio, ...(ok ? ["--allowedTools", ok] : [])]
+      : [];
     const p = spawn(comando, args, { shell: process.platform === "win32", stdio: ["pipe", "pipe", "pipe"] });
     let out = "", err = "";
     const timer = setTimeout(() => { p.kill(); reject(new Error("tempo esgotado")); }, tempoMax);
@@ -57,7 +64,7 @@ for (;;) {
       const t = await r.json();
       console.log(`[tarefa ${t.id}] ${t.tipo}`);
       try {
-        const resultado = await executarClaude(t.payload.prompt, t.payload.modelo);
+        const resultado = await executarClaude(t.payload.prompt, t.payload.modelo, t.payload.ferramentas);
         await chamar("concluir", { id: t.id, resultado });
         console.log(`[tarefa ${t.id}] concluída`);
       } catch (e) {

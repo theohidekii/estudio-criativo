@@ -21,3 +21,11 @@
 - Testado de ponta a ponta com um comando falso no lugar do Claude (o `claude` não está instalado no PATH desta máquina).
 
 Uso: em `/agentes` gere o token e rode `npm run agente -- --servidor http://localhost:3000 --token <token>`.
+
+## Fase 1 — etapa 2: roteiros e pesquisa de fatos
+
+- Quadro de **Roteiros** por etapa (ideia → rascunho → aprovado → gravado → publicado) e séries.
+- Editor com campos de **pesquisa de fatos** e **roteiro**, mais lista de **fontes** com ressalvas.
+- Botões de IA: **Pesquisar fatos** (Sonnet + WebSearch/WebFetch, só leitura da web) e **Escrever rascunho** (Sonnet, sem ferramentas). O agente só aceita essas duas ferramentas.
+- Testado com o Claude real: a pesquisa trouxe fontes e avisou o que não conseguiu confirmar; o rascunho usou só os fatos da pesquisa.
+- Correções: ações de formulário não podem capturar o objeto do banco; no Windows o `--tools ""` precisa de aspas literais.
