@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { mensagens, notificacoes, roteiros, tarefas, versoesVideo } from "@estudio/db";
-import { validarCenas } from "@estudio/video/src/generic/tipos";
+import { montarLegendas, validarCenas } from "@estudio/video/src/generic/tipos";
 import { concluir, falhar } from "@estudio/db/src/fila";
 import { agenteDaRequisicao } from "@/lib/agente";
 import { db } from "@/lib/db";
@@ -14,13 +14,18 @@ export async function POST(req: Request) {
   const d = db();
   const t = d.select().from(tarefas).where(eq(tarefas.id, id)).get();
   if (!t || t.usuarioId !== a.usuarioId) return new Response("tarefa inexistente", { status: 404 });
-  const { mensagemId, roteiroId, campo, versaoId, duracao } = JSON.parse(t.payload) as { mensagemId?: number; roteiroId?: number; campo?: "texto" | "pesquisa"; versaoId?: number; duracao?: number };
+  const { mensagemId, roteiroId, campo, versaoId, duracao, estilo: payloadEstilo } = JSON.parse(t.payload) as { mensagemId?: number; roteiroId?: number; campo?: "texto" | "pesquisa"; versaoId?: number; duracao?: number; estilo?: string };
   if (versaoId) {
     // IA devolveu o JSON de cenas (geração ou ajuste): validar antes de aceitar
     try {
       if (erro) throw new Error(erro);
       const limpo = (resultado ?? "").replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim();
       const cenas = validarCenas(JSON.parse(limpo.slice(limpo.indexOf("{"), limpo.lastIndexOf("}") + 1)), duracao ?? 60);
+      // O estilo é decidido pelo vídeo, não pela IA; no estilo de legenda curta o sistema monta as legendas pelos tempos da narração.
+      const ver = d.select().from(versoesVideo).where(eq(versoesVideo.id, versaoId)).get();
+      const estilo = payloadEstilo === "volta-por-cima" ? "volta-por-cima" : "classico";
+      cenas.estilo = estilo;
+      if (estilo === "volta-por-cima" && ver) cenas.legendas = montarLegendas(JSON.parse(ver.palavras));
       concluir(d, id);
       d.update(versoesVideo).set({ cenas: JSON.stringify(cenas), status: "cenas_prontas", erro: null }).where(eq(versoesVideo.id, versaoId)).run();
     } catch (e) {

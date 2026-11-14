@@ -84,3 +84,17 @@ Base: 5 vídeos verticais de 81 a 99 s. Método: quadros ao longo do tempo, dete
 - Cada estilo é um pacote: paleta, fontes, personagens, cenários, componentes de texto (legenda, etiqueta, adesivo, HUD, faixa) e **regras de ritmo** (cena média, palavras por legenda, push-in).
 - O formato atual de cenas ganha `estilo` e novos tipos de elemento (etiqueta em pílula, adesivo, HUD, celular).
 - Ordem: Volta por Cima (mais próximo do motor atual) → Matrixxtz 2D → Natan Madeira em 3D com three.js.
+
+---
+
+# Estilo implementado: Volta por Cima
+
+Pacote visual em `packages/video/src/generic/vpc.tsx`; dados em `tipos.ts` (formato v2) e exemplo em `amostras.ts`. Escolha do estilo ao criar o vídeo; galeria em **Estilos**.
+
+- **Cenários:** parque, rua, quarto, cor chapada com raios e escuro, em vetor com contorno escuro.
+- **Texto:** legenda grande no centro (1 a 3 palavras, montada automaticamente pelos tempos da narração, com palavras de `destaques` em cor), etiquetas amarelas sobre os personagens, adesivos inclinados e títulos com contorno.
+- **HUD** de jogo no topo (contagem + até 4 barras), que vale até a próxima cena que o altere.
+- **Celular** com conversa ou comprovante de Pix, com tamanho e posição limitados para não cobrir rostos.
+- **IA:** prompt próprio por estilo; o servidor decide o estilo do vídeo (a IA não troca) e valida o JSON.
+- Testado de ponta a ponta com ElevenLabs e Claude reais (vídeo de 8 s com narração, 7 cenas e 10 legendas).
+- Limites: personagens ainda são os do motor atual (cabeça menor que nas referências); sem efeitos sonoros nem música; HUD com poucas barras fica vazio.

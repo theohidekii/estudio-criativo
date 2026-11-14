@@ -1,19 +1,30 @@
 // Formato de dados das cenas. Sem imports do Remotion para poder ser usado também no servidor (validação).
 export const EXPRESSOES = ["neutral", "stern", "grin", "laugh", "whistle", "nervous", "shock", "relief", "dazed", "pained", "smile", "smile_closed"] as const;
-export const CENARIOS = ["sala", "parque", "escuro", "cor"] as const;
+export const CENARIOS = ["sala", "parque", "escuro", "cor", "chapado", "rua", "quarto"] as const;
+export const ESTILOS = ["classico", "volta-por-cima"] as const;
+export const CORES_BARRA = ["vermelho", "verde", "azul", "amarelo"] as const;
 
+export type Estilo = (typeof ESTILOS)[number];
 export type Roupa = { jacket: string; pants: string; boots?: string; hat?: "hair" | "cap"; hair?: string; cap?: string; skin?: string; glasses?: boolean; build?: "adult" | "stout" | "kid" };
 export type Personagem = { x: number; y: number; altura: number; expr: (typeof EXPRESSOES)[number]; flip?: boolean; seed?: number; modo?: "stand" | "sit"; roupa: Roupa };
 export type Texto = { texto: string; x: number; y: number; tamanho: number; cor?: string; estilo: "etiqueta" | "grande"; aparece?: number };
+export type Adesivo = { texto: string; x: number; y: number; cor?: string; rotacao?: number; aparece?: number };
+export type Barra = { nome: string; valor: number; texto?: string; cor: (typeof CORES_BARRA)[number] };
+export type Hud = { titulo: string; numero: number; barras: Barra[] };
+export type Celular = { x: number; y: number; largura: number; titulo: string; tipo: "chat" | "pix"; linhas: { de: "eu" | "ele"; texto: string }[]; aparece?: number };
+export type Legenda = { inicio: number; fim: number; texto: string };
 export type Cena = {
   inicio: number; // segundos desde o começo do vídeo
-  cenario: { tipo: (typeof CENARIOS)[number]; cor?: string; piso?: string };
+  cenario: { tipo: (typeof CENARIOS)[number]; cor?: string; piso?: string; raios?: boolean };
   personagens: Personagem[];
   textos: Texto[];
+  adesivos?: Adesivo[];
+  celular?: Celular;
+  hud?: Hud; // se omitido, vale o HUD da cena anterior
   zoom?: [number, number];
   flash?: boolean;
 };
-export type Cenas = { duracao: number; cenas: Cena[] };
+export type Cenas = { duracao: number; estilo?: Estilo; destaques?: string[]; legendas?: Legenda[]; cenas: Cena[] };
 
 const num = (v: unknown, a: number, b: number, nome: string) => {
   if (typeof v !== "number" || !Number.isFinite(v) || v < a || v > b) throw new Error(`${nome} inválido (esperado número entre ${a} e ${b})`);
@@ -23,12 +34,34 @@ const cor = (v: unknown, nome: string) => {
   if (typeof v !== "string" || !/^#[0-9a-fA-F]{6}$/.test(v)) throw new Error(`${nome} precisa ser uma cor #rrggbb`);
   return v;
 };
+const txt = (v: unknown, max: number, nome: string) => {
+  if (typeof v !== "string" || !v.trim() || v.length > max) throw new Error(`${nome}: texto vazio ou longo demais (máx. ${max})`);
+  return v;
+};
+
+/** Agrupa as palavras da narração em legendas de 1 a 3 palavras (estilo de legenda curta e grande). */
+export function montarLegendas(palavras: { w: string; s: number; e: number }[], maxPalavras = 3): Legenda[] {
+  const grupos: { w: string; s: number; e: number }[][] = [];
+  let atual: { w: string; s: number; e: number }[] = [];
+  for (const p of palavras) {
+    atual.push(p);
+    const fecha = /[.!?:;,]$/.test(p.w) || atual.length >= maxPalavras || atual.map((x) => x.w).join(" ").length >= 16;
+    if (fecha) { grupos.push(atual); atual = []; }
+  }
+  if (atual.length) grupos.push(atual);
+  return grupos.map((g, i) => ({
+    inicio: g[0].s,
+    fim: grupos[i + 1] ? grupos[i + 1][0].s : g[g.length - 1].e + 0.3,
+    texto: g.map((x) => x.w).join(" ").replace(/[.,;:]+$/, "").toUpperCase(),
+  }));
+}
 
 /** Valida e normaliza o JSON vindo da IA ou do editor. Lança Error com mensagem clara. */
 export function validarCenas(bruto: unknown, duracao: number): Cenas {
-  const o = bruto as { cenas?: unknown };
+  const o = bruto as { cenas?: unknown; estilo?: unknown; destaques?: unknown; legendas?: unknown };
   if (!o || !Array.isArray(o.cenas) || o.cenas.length === 0) throw new Error("faltou a lista 'cenas'");
   if (o.cenas.length > 60) throw new Error("cenas demais (máx. 60)");
+  const estilo: Estilo = ESTILOS.includes(o.estilo as Estilo) ? (o.estilo as Estilo) : "classico";
   const cenas: Cena[] = o.cenas.map((c: any, i: number) => {
     const p = `cena ${i + 1}`;
     if (!CENARIOS.includes(c?.cenario?.tipo)) throw new Error(`${p}: cenario.tipo deve ser ${CENARIOS.join(", ")}`);
@@ -45,22 +78,51 @@ export function validarCenas(bruto: unknown, duracao: number): Cenas {
         },
       };
     });
-    const textos: Texto[] = (c.textos ?? []).slice(0, 5).map((t: any, j: number) => {
-      if (typeof t?.texto !== "string" || !t.texto.trim() || t.texto.length > 60) throw new Error(`${p} texto ${j + 1}: texto vazio ou longo demais (máx. 60)`);
-      return {
-        texto: t.texto, x: num(t.x, 0, 1080, `${p} texto x`), y: num(t.y, 0, 1920, `${p} texto y`), tamanho: num(t.tamanho, 30, 200, `${p} texto tamanho`),
-        cor: t.cor ? cor(t.cor, "cor") : "#ffd54a", estilo: t.estilo === "grande" ? "grande" : "etiqueta", aparece: Number.isFinite(t.aparece) ? Math.max(0, t.aparece) : 0,
+    const textos: Texto[] = (c.textos ?? []).slice(0, 5).map((t: any, j: number) => ({
+      texto: txt(t?.texto, 60, `${p} texto ${j + 1}`), x: num(t.x, 0, 1080, `${p} texto x`), y: num(t.y, 0, 1920, `${p} texto y`), tamanho: num(t.tamanho, 30, 200, `${p} texto tamanho`),
+      cor: t.cor ? cor(t.cor, "cor") : "#ffd54a", estilo: t.estilo === "grande" ? "grande" : "etiqueta", aparece: Number.isFinite(t.aparece) ? Math.max(0, t.aparece) : 0,
+    }));
+    const adesivos: Adesivo[] = (c.adesivos ?? []).slice(0, 3).map((a: any, j: number) => ({
+      texto: txt(a?.texto, 24, `${p} adesivo ${j + 1}`), x: num(a.x, 0, 1080, `${p} adesivo x`), y: num(a.y, 0, 1920, `${p} adesivo y`),
+      cor: a.cor ? cor(a.cor, "adesivo cor") : "#e0334a", rotacao: Number.isFinite(a.rotacao) ? Math.max(-20, Math.min(20, a.rotacao)) : -6, aparece: Number.isFinite(a.aparece) ? Math.max(0, a.aparece) : 0,
+    }));
+    let celular: Celular | undefined;
+    if (c.celular) {
+      const k = c.celular;
+      // O celular tem altura 1,9x a largura. Fica entre o HUD (y 270) e o rosto dos personagens (y 820): limitamos tamanho e posição.
+      const largura = Math.min(num(k.largura, 200, 520, `${p} celular largura`), 270);
+      const meia = (largura * 1.9) / 2;
+      celular = {
+        x: num(k.x, 0, 1080, `${p} celular x`), y: Math.max(270 + meia, Math.min(820 - meia, num(k.y, 0, 1920, `${p} celular y`))), largura,
+        titulo: txt(k.titulo, 30, `${p} celular titulo`), tipo: k.tipo === "pix" ? "pix" : "chat",
+        linhas: (k.linhas ?? []).slice(0, 5).map((l: any, j: number) => ({ de: l?.de === "eu" ? "eu" : "ele", texto: txt(l?.texto, 50, `${p} celular linha ${j + 1}`) })),
+        aparece: Number.isFinite(k.aparece) ? Math.max(0, k.aparece) : 0,
       };
-    });
+    }
+    let hud: Hud | undefined;
+    if (c.hud) {
+      const h = c.hud;
+      hud = {
+        titulo: txt(h.titulo, 24, `${p} hud titulo`), numero: num(h.numero, 0, 9999, `${p} hud numero`),
+        barras: (h.barras ?? []).slice(0, 4).map((b: any, j: number) => ({
+          nome: txt(b?.nome, 10, `${p} hud barra ${j + 1}`), valor: num(b.valor, 0, 100, `${p} hud valor`), texto: typeof b.texto === "string" ? b.texto.slice(0, 12) : undefined,
+          cor: CORES_BARRA.includes(b.cor) ? b.cor : "azul",
+        })),
+      };
+    }
     return {
       inicio: num(c.inicio, 0, duracao, `${p} inicio`),
-      cenario: { tipo: c.cenario.tipo, cor: c.cenario.cor ? cor(c.cenario.cor, "cenario.cor") : undefined, piso: c.cenario.piso ? cor(c.cenario.piso, "cenario.piso") : undefined },
-      personagens, textos,
+      cenario: { tipo: c.cenario.tipo, cor: c.cenario.cor ? cor(c.cenario.cor, "cenario.cor") : undefined, piso: c.cenario.piso ? cor(c.cenario.piso, "cenario.piso") : undefined, raios: !!c.cenario.raios },
+      personagens, textos, adesivos, celular, hud,
       zoom: Array.isArray(c.zoom) && c.zoom.length === 2 ? [num(c.zoom[0], 0.8, 1.6, "zoom"), num(c.zoom[1], 0.8, 1.6, "zoom")] : undefined,
       flash: !!c.flash,
     };
   });
   cenas.sort((a, b) => a.inicio - b.inicio);
   if (cenas[0].inicio !== 0) cenas[0].inicio = 0;
-  return { duracao, cenas };
+  const destaques = Array.isArray(o.destaques) ? o.destaques.filter((d): d is string => typeof d === "string").slice(0, 40).map((d) => d.toUpperCase()) : undefined;
+  const legendas = Array.isArray(o.legendas)
+    ? (o.legendas as any[]).slice(0, 400).map((l, i) => ({ inicio: num(l?.inicio, 0, duracao + 5, `legenda ${i + 1} inicio`), fim: num(l?.fim, 0, duracao + 5, `legenda ${i + 1} fim`), texto: txt(l?.texto, 60, `legenda ${i + 1}`) }))
+    : undefined;
+  return { duracao, estilo, destaques, legendas, cenas };
 }

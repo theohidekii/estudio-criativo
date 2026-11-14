@@ -8,6 +8,7 @@ import { validarCenas } from "@estudio/video/src/generic/tipos";
 import { agentes, notificacoes, perfis, roteiros, tarefas, versoesVideo, videos, vozes } from "@estudio/db";
 import { enfileirar } from "@estudio/db/src/fila";
 import { db } from "@/lib/db";
+import { nomeDoEstilo } from "@/lib/estilos";
 import { gerarNarracao, pastaVideo } from "@/lib/narracao";
 import { instrucaoBase, pedidoAjuste, pedidoCenas } from "@/lib/prompts";
 import { usuarioAtual } from "@/lib/sessao";
@@ -86,8 +87,9 @@ export default async function Video({ params, searchParams }: { params: Promise<
     const v = atual(id);
     const ro = dd.select().from(roteiros).where(eq(roteiros.id, dd.select().from(videos).where(eq(videos.id, id)).get()!.roteiroId)).get();
     if (!ro || !v.duracao) return;
-    const prompt = `${instrucaoBase(undefined)}\n\n${pedidoCenas(ro.texto, JSON.parse(v.palavras), v.duracao)}`;
-    enfileirar(dd, "ia.cenas", { versaoId: v.id, prompt, modelo: "sonnet", ferramentas: [], duracao: v.duracao }, new Date(), uidd);
+    const estilo = dd.select().from(videos).where(eq(videos.id, id)).get()!.estilo;
+    const prompt = `${instrucaoBase(undefined)}\n\n${pedidoCenas(ro.texto, JSON.parse(v.palavras), v.duracao, estilo)}`;
+    enfileirar(dd, "ia.cenas", { versaoId: v.id, prompt, modelo: "sonnet", ferramentas: [], duracao: v.duracao, estilo }, new Date(), uidd);
     dd.update(versoesVideo).set({ erro: null }).where(eq(versoesVideo.id, v.id)).run();
     revalidatePath(`/videos/${id}`);
   }
@@ -99,8 +101,9 @@ export default async function Video({ params, searchParams }: { params: Promise<
     const v = atual(id);
     const instrucao = String(form.get("instrucao") ?? "").trim();
     if (!instrucao || !v.cenas || !v.duracao) return;
-    const prompt = `${instrucaoBase(undefined)}\n\n${pedidoAjuste(v.cenas, instrucao, v.duracao)}`;
-    enfileirar(dd, "ia.ajuste", { versaoId: v.id, prompt, modelo: "sonnet", ferramentas: [], duracao: v.duracao }, new Date(), uidd);
+    const estilo = dd.select().from(videos).where(eq(videos.id, id)).get()!.estilo;
+    const prompt = `${instrucaoBase(undefined)}\n\n${pedidoAjuste(v.cenas, instrucao, v.duracao, estilo)}`;
+    enfileirar(dd, "ia.ajuste", { versaoId: v.id, prompt, modelo: "sonnet", ferramentas: [], duracao: v.duracao, estilo }, new Date(), uidd);
     revalidatePath(`/videos/${id}`);
   }
 
@@ -166,7 +169,7 @@ export default async function Video({ params, searchParams }: { params: Promise<
   const renderizando = ver.status === "renderizando";
   return (
     <>
-      <PageHead titulo={vid.titulo} descricao={<span className="mono">Vídeo #{id} · versão {ver.numero}</span>}>
+      <PageHead titulo={vid.titulo} descricao={<span className="mono">Vídeo #{id} · versão {ver.numero} · estilo {nomeDoEstilo(vid.estilo)}</span>}>
         {todas.map((x) => <a key={x.id} href={`/videos/${id}?v=${x.numero}`} className={`etiqueta${x.id === ver.id ? " acento" : ""}`}>v{x.numero}</a>)}
         {ver.id === todas[0].id && <form action={novaVersao}><button className="sec peq" title="Copia a versão atual para ajustar sem perder esta">Nova versão</button></form>}
       </PageHead>

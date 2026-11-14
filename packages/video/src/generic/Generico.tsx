@@ -1,9 +1,11 @@
 // Composição genérica: desenha um vídeo a partir do JSON de cenas (personagens, textos, cenário, câmera) + narração.
+// O campo `estilo` escolhe o pacote visual (clássico ou Volta por Cima).
 import React from "react";
 import { AbsoluteFill, Audio, interpolate, staticFile, useCurrentFrame } from "remotion";
 import { INK, Outfit } from "../videos/bridge/toon";
 import { Cam, Room, Tag, Toon } from "../videos/milgram/Milgram";
 import type { Cena, Cenas, Roupa, Texto } from "./tipos";
+import { AdesivoVPC, CelularVPC, CenarioVPC, HudVPC, LegendaVPC, Pilula, Titulo, hudDaCena } from "./vpc";
 
 const FPS = 30;
 export type GenericoProps = { cenas: Cenas; audio?: string };
@@ -40,15 +42,34 @@ export const Generico: React.FC<GenericoProps> = ({ cenas, audio }) => {
   const fim = cenas.duracao;
   const fade = interpolate(f, [Math.round(fim * FPS) - 15, Math.round(fim * FPS)], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const src = audio ? (/^(https?:)?\//.test(audio) ? audio : staticFile(audio)) : undefined;
+  const vpc = cenas.estilo === "volta-por-cima";
+  const personagens = c.personagens.map((p, j) => (
+    <Toon key={`${i}-${j}`} o={paraOutfit(p.roupa)} expr={p.expr} seed={p.seed ?? j + 1} h={p.altura} x={p.x} y={p.y} mode={p.modo} flip={p.flip} />
+  ));
+
+  if (vpc) {
+    const hud = hudDaCena(lista, i);
+    return (
+      <AbsoluteFill style={{ background: "#000", opacity: fade }}>
+        {src && <Audio src={src} />}
+        <CenarioVPC c={c}>
+          <Cam a={c.inicio} z0={c.zoom?.[0] ?? 1} z1={c.zoom?.[1] ?? 1.06} noZap>{personagens}</Cam>
+          {c.celular && <CelularVPC c={c.celular} sec={local} />}
+          {c.textos.map((t, j) => t.estilo === "grande" ? <Titulo key={`${i}-${j}`} t={t} sec={local} /> : <Pilula key={`${i}-${j}`} t={t} sec={local} />)}
+          {(c.adesivos ?? []).map((a, j) => <AdesivoVPC key={`a${i}-${j}`} a={a} sec={local} />)}
+        </CenarioVPC>
+        {hud && <HudVPC h={hud} />}
+        <LegendaVPC sec={sec} legendas={cenas.legendas} destaques={cenas.destaques} />
+        {c.flash && local < 2 / FPS && <AbsoluteFill style={{ background: "#fff", opacity: 0.8 }} />}
+      </AbsoluteFill>
+    );
+  }
+
   return (
     <AbsoluteFill style={{ background: "#000", opacity: fade }}>
       {src && <Audio src={src} />}
       <Fundo c={c}>
-        <Cam a={c.inicio} z0={c.zoom?.[0] ?? 1} z1={c.zoom?.[1] ?? 1.08} noZap>
-          {c.personagens.map((p, j) => (
-            <Toon key={`${i}-${j}`} o={paraOutfit(p.roupa)} expr={p.expr} seed={p.seed ?? j + 1} h={p.altura} x={p.x} y={p.y} mode={p.modo} flip={p.flip} />
-          ))}
-        </Cam>
+        <Cam a={c.inicio} z0={c.zoom?.[0] ?? 1} z1={c.zoom?.[1] ?? 1.08} noZap>{personagens}</Cam>
         {c.textos.map((t, j) => t.estilo === "grande"
           ? <Grande key={`${i}-${j}`} t={t} sec={local} />
           : <Tag key={`${i}-${j}`} text={t.texto} x={t.x} y={t.y} sec={local} since={t.aparece ?? 0} col={t.cor} />)}

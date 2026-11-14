@@ -39,8 +39,29 @@ Regras de layout (tela vertical 1080x1920):
 - Mostre só o que a narração diz. Tom sério quando o tema for crime ou tragédia: sem violência, sem sangue, sem humor.
 - Use "escuro" para momentos de tensão e conclusão, "parque" para ambientes externos, "sala" para ambientes internos.`;
 
-export const pedidoCenas = (roteiro: string, palavras: { w: string; s: number }[], duracao: number) =>
-  `${ESQUEMA_CENAS}
+const ESQUEMA_VPC = `Responda SOMENTE com JSON válido (sem markdown, sem comentários) no estilo "Volta por Cima": humor em série, vetor chapado, cores vivas, ritmo rápido.
+{"duracao": <segundos>, "estilo": "volta-por-cima", "destaques": ["PALAVRA", ...],
+ "cenas": [{
+  "inicio": <segundos, a primeira é 0>,
+  "cenario": {"tipo": "parque"|"rua"|"quarto"|"chapado"|"escuro", "cor": "#rrggbb" (opcional), "raios": true (só em "chapado")},
+  "personagens": [{"x": 0-1080, "y": 1450-1600, "altura": 700-900, "expr": "neutral|stern|grin|laugh|nervous|shock|relief|dazed|pained|smile|smile_closed", "flip": false, "seed": 1,
+     "roupa": {"jacket": "#rrggbb", "pants": "#rrggbb", "hat": "hair"|"cap", "hair": "#rrggbb", "cap": "#rrggbb", "skin": "#rrggbb", "glasses": false, "build": "adult"|"stout"|"kid"}}],
+  "textos": [{"texto": "...", "x": 0-1080, "y": 250-1800, "tamanho": 40, "estilo": "etiqueta"|"grande", "aparece": <segundos dentro da cena>}],
+  "adesivos": [{"texto": "...", "x": 0-1080, "y": 250-1800, "cor": "#rrggbb", "rotacao": -8..8, "aparece": 0.3}],
+  "celular": {"x": 540, "y": 700, "largura": 300, "titulo": "Nome do contato", "tipo": "chat"|"pix", "linhas": [{"de": "eu"|"ele", "texto": "..."}]},
+  "hud": {"titulo": "Dias pro ...", "numero": 24, "barras": [{"nome": "Mente", "valor": 0-100, "texto": "30%", "cor": "vermelho"|"verde"|"azul"|"amarelo"}]},
+  "zoom": [1, 1.06], "flash": false }]}
+O sistema desenha a LEGENDA sozinho a partir da narração; não escreva legendas. Em "destaques" liste de 6 a 20 palavras da narração (em maiúsculas, sem pontuação) que merecem cor: nomes, números e viradas de humor.
+Regras de layout (tela vertical 1080x1920):
+- O HUD ocupa y < 260 e a legenda ocupa a faixa y 1000 a 1260: não coloque textos nem celular nessas faixas. Rostos dos personagens ficam acima de y 1000.
+- Troque de cena a cada 2 a 4 segundos, na virada de cada frase. Entre 10 e 22 cenas. Alterne cenários (cor chapada com raios para reviravolta e emoção, parque ou quarto para contexto).
+- Use "hud" na primeira cena e atualize os valores quando algo muda a história (o HUD vale até a próxima cena que o altere). Só use HUD se o roteiro tiver um prazo ou contagem; senão omita.
+- "etiqueta": no máximo 20 caracteres, sobre o personagem a que se refere (ex.: "O EX"). "adesivo": 1 a 3 palavras de ação ("NÃO LARGOU", "TODO DIA"), no máximo 1 por cena. "celular" quando a narração fala de mensagem, foto ou Pix: largura 250 a 270 e y por volta de 540 (o sistema ajusta se passar).
+- No máximo 3 personagens por cena; com 2 ou 3, espalhe o x (270, 540, 810) e use altura 650 a 750. Mantenha cada personagem com a mesma roupa em todo o vídeo.
+- Tom: humor leve e ágil. Se o tema for crime ou tragédia, não use este estilo: avise no campo "estilo" trocando para "classico".`;
+
+export const pedidoCenas = (roteiro: string, palavras: { w: string; s: number }[], duracao: number, estilo = "classico") =>
+  `${estilo === "volta-por-cima" ? ESQUEMA_VPC : ESQUEMA_CENAS}
 
 Duração total: ${duracao.toFixed(1)} segundos.
 Narração (linha por linha):
@@ -49,8 +70,8 @@ ${roteiro}
 Tempo em que cada palavra é falada (segundos):
 ${palavras.map((p) => `${p.s.toFixed(2)} ${p.w}`).join(" | ")}`;
 
-export const pedidoAjuste = (cenasJson: string, instrucao: string, duracao: number) =>
-  `${ESQUEMA_CENAS}
+export const pedidoAjuste = (cenasJson: string, instrucao: string, duracao: number, estilo = "classico") =>
+  `${estilo === "volta-por-cima" ? ESQUEMA_VPC : ESQUEMA_CENAS}
 
 Aplique este ajuste ao vídeo e devolva o JSON COMPLETO atualizado (mantenha tudo que não foi pedido para mudar).
 Duração total: ${duracao.toFixed(1)} segundos.

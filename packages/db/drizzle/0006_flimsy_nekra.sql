@@ -1,0 +1,1 @@
+ALTER TABLE `videos` ADD `estilo` text DEFAULT 'classico' NOT NULL;

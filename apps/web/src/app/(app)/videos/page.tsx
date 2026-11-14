@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { roteiros, versoesVideo, videos } from "@estudio/db";
 import { db } from "@/lib/db";
+import { ESTILOS_INFO } from "@/lib/estilos";
 import { PageHead } from "../PageHead";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +14,8 @@ async function criar(form: FormData) {
   const roteiroId = Number(form.get("roteiroId"));
   const r = d.select().from(roteiros).all().find((x) => x.id === roteiroId);
   if (!r) return;
-  const v = d.insert(videos).values({ roteiroId, titulo: r.titulo }).returning().get();
+  const estilo = ESTILOS_INFO.some((e) => e.id === form.get("estilo")) ? String(form.get("estilo")) : "classico";
+  const v = d.insert(videos).values({ roteiroId, titulo: r.titulo, estilo }).returning().get();
   d.insert(versoesVideo).values({ videoId: v.id, numero: 1 }).run();
   redirect(`/videos/${v.id}`);
 }
@@ -32,6 +34,9 @@ export default function Videos() {
         <form action={criar} className="card linha" style={{ alignItems: "flex-end" }}>
           <label className="grow" style={{ margin: 0 }}>Roteiro
             <select name="roteiroId" style={{ marginBottom: 0 }}>{rs.map((r) => <option key={r.id} value={r.id}>{r.titulo}</option>)}</select>
+          </label>
+          <label style={{ margin: 0, minWidth: 180 }}>Estilo
+            <select name="estilo" style={{ marginBottom: 0 }}>{ESTILOS_INFO.map((e) => <option key={e.id} value={e.id}>{e.nome}</option>)}</select>
           </label>
           <button>Criar vídeo</button>
         </form>

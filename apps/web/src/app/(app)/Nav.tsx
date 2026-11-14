@@ -12,6 +12,7 @@ const GRUPOS: { titulo: string; itens: { href: string; nome: string; n?: string 
   { titulo: "Biblioteca", itens: [
     { href: "/perfis", nome: "Perfis" },
     { href: "/vozes", nome: "Vozes" },
+    { href: "/estilos", nome: "Estilos" },
   ] },
 ];
 
